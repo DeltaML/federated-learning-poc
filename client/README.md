@@ -29,3 +29,11 @@ pip install -r requirements.txt;
 ```
 docker run --rm -it -p 5000:5000 federated-learning-client
 ```
+
+
+## Examples
+
+```
+curl -H "Content-Type: application/json" -X POST "http://localhost:5000/weights" --data @example-body.json 
+
+```

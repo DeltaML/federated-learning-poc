@@ -1,1 +1,2 @@
 N_CLIENTS=1
+NAME="Client 1"
