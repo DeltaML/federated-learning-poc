@@ -1,2 +1,3 @@
-N_CLIENTS=1
-NAME="Client 1"
+CLIENT_ID = 1
+N_CLIENTS = 5
+NAME = "Client 1"

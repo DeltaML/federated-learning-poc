@@ -1,6 +1,6 @@
 import numpy as np
 
-from operations_utils.functions import encrypt_vector, sum_encrypted_vectors
+from client.operations_utils.functions import encrypt_vector, sum_encrypted_vectors
 
 
 class Client:
@@ -10,7 +10,7 @@ class Client:
     Using public key can encrypt locally computed gradients.
     """
 
-    def __init__(self, name, X, y, pubkey):
+    def __init__(self, name, X, y, pubkey=None):
         self.name = name
         self.pubkey = pubkey
         self.X, self.y = X, y
@@ -49,3 +49,10 @@ class Client:
             return sum_encrypted_vectors(sum_to, encrypted_gradient)
         else:
             return encrypted_gradient
+
+
+class ClientService:
+
+    @classmethod
+    def create_client(cls, name, X, y, pub_key=None):
+        return Client(name, X, y, pub_key)
