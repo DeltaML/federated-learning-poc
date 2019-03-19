@@ -26,8 +26,10 @@ pip install -r requirements.txt;
 ```
 
 ### Run container
+
+Select _LOCAL_PORT_ number to run some containers
 ```
-docker run --rm -it -p 5000:5000 federated-learning-client
+docker run --rm -it -p <LOCAL_PORT>:5000 federated-learning-client
 ```
 
 
