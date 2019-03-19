@@ -2,11 +2,12 @@ import logging
 import os
 from logging.config import dictConfig
 
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify
 from client.data.data_loader import get_data
-from client.operations_utils.functions import get_encrypted_number, get_deserialized_public_key, get_serialized_gradient
-from client.service.client_service import ClientService
-from client.service.model_type_service import ModelTypeService
+from client.exceptions.exceptions import InvalidModelException
+from client.service.client_service import ClientFactory
+from client.service.model_service import ModelType
+
 
 dictConfig({
     'version': 1,
@@ -38,51 +39,41 @@ def create_app():
     return flask_app
 
 
-def create_client(id, pub_key):
-    return ClientService.create_client(app.config['NAME'], X[id], Y[id], pub_key)
-
-
 # Global variables
 app = create_app()
 X, Y, X_test, Y_test = get_data(app.config['N_CLIENTS'])
 client_id, client_name = app.config['CLIENT_ID'], app.config['NAME']
-client = ClientService.create_client(client_name, X[client_id], Y[client_id])
+client = ClientFactory.create_client(client_name, X[client_id], Y[client_id])
 
 
-# Single endpoints
-@app.route('/create', methods=['POST'])
-def client():
-    pub_key = request.pub_key
-    id = request.id
-    client = create_client(id, pub_key)
-    return "Client {} was created".format(client.name)
+@app.errorhandler(Exception)
+def handle_error(error):
+    message = [str(x) for x in error.args]
+    status_code = error.status_code
+    success = False
+    response = {
+        'success': success,
+        'error': {
+            'type': error.__class__.__name__,
+            'message': message
+        }
+    }
+
+    return jsonify(response), status_code
 
 
-@app.route('/encrypted_gradient', methods=['POST'])
-def encrypted_gradient():
-    encrypt_aggr = request.encrypt_aggr
-    return client.encrypted_gradient(encrypt_aggr)
-
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    input = request.input
-    return client.predict(input)
-
-
-# General processing
 @app.route('/weights', methods=['POST'])
 def process_weights():
     data = request.get_json()
     logging.info("process_weights with {}".format(data))
     # Validate model type
-    if not ModelTypeService.validate(data['type']):
-        return jsonify(dict(error="Invalid Model Type")), 400
+    model_type = data['type']
+
+    if not ModelType.validate(model_type):
+        raise InvalidModelException(model_type)
 
     # Server public key
-    pub_key = get_deserialized_public_key(data['pub_key'])
-    # encrypt_aggr
-    encrypt_aggr = [get_encrypted_number(pub_key, encrypt_value['ciphertext'], encrypt_value['exponent']) for
-                    encrypt_value in data['encrypt_aggr']]
-    client.pubkey = pub_key
-    return jsonify([get_serialized_gradient(value) for value in client.encrypted_gradient(encrypt_aggr)])
+    client.set_public_key(data['pub_key'])
+    # encrypted_model
+    response = client.process(model_type, data["encrypted_model"])
+    return jsonify(response)
