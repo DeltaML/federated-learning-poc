@@ -16,7 +16,7 @@ class Server:
     def sendModelTypeToClient(client, model_type):
         requests.post(paillier.encrypt(model_type))
 
-    def registerClients(self, clients):
+    def register_clients(self, clients):
         self.clients = clients
 
     def _getUpdateFromClient(client):
