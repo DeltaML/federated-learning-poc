@@ -50,7 +50,7 @@ def register_client():
 
 @app.route('/clients', methods=['GET'])
 def get_clients():
-    return server.clients
+    return jsonify(server.clients)
 
 
 @app.route('/predict', methods=['POST'])
