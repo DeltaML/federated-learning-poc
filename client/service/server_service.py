@@ -1,4 +1,5 @@
 import requests
+import logging
 
 
 class ServerService:
@@ -13,6 +14,7 @@ class ServerService:
         :return:
         """
         server_register_url = self.server_host + "/clients/register"
+        logging.info("Register client {} to server {}".format(client_data, server_register_url))
         response = requests.post(server_register_url, json=client_data)
         response.raise_for_status()
         return response.json()
