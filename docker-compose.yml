@@ -13,6 +13,5 @@ services:
     build:
       context: ./
       dockerfile: './client/Dockerfile'
-    container_name: cte_client
     ports:
      - "5000:5000"

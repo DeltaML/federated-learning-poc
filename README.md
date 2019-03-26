@@ -13,3 +13,8 @@ Then run
 ```
 docker-compose up
 ```
+
+Run and scale clients
+```
+docker-compose up --scale cte_client=<N_CLIENTS>
+```
