@@ -3,11 +3,11 @@ import os
 from logging.config import dictConfig
 
 from flask import Flask, request, jsonify
-from client.data.data_loader import get_data
+from client.data.data_loader import DataLoader
 from client.exceptions.exceptions import InvalidModelException
 from client.service.client_service import ClientFactory
 from client.service.model_service import ModelType
-
+from client.service.server_service import ServerService
 
 dictConfig({
     'version': 1,
@@ -41,9 +41,12 @@ def create_app():
 
 # Global variables
 app = create_app()
-X, Y, X_test, Y_test = get_data(app.config['N_CLIENTS'])
-client_id, client_name = app.config['CLIENT_ID'], app.config['NAME']
-client = ClientFactory.create_client(client_name, X[client_id], Y[client_id])
+data_loader = DataLoader()
+data_loader.load_data(app.config['N_SEGMENTS'])
+client_id = app.config['CLIENT_ID']
+X_client, y_client = data_loader.get_sub_set(client_id)
+client = ClientFactory.create_client(app.config, X_client, y_client)
+client.register()
 
 
 @app.errorhandler(Exception)
@@ -72,8 +75,6 @@ def process_weights():
     if not ModelType.validate(model_type):
         raise InvalidModelException(model_type)
 
-    # Server public key
-    client.set_public_key(data['pub_key'])
     # encrypted_model
     response = client.process(model_type, data["encrypted_model"])
     return jsonify(response)
