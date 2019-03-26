@@ -12,6 +12,7 @@ class Server:
 
     def sendGlobalModel(self, modelName):
         """Encripta y envia el nombre del modelo a ser entrenado"""
+        return requests.post()
 
     def sendModelTypeToClient(client, model_type):
         requests.post(paillier.encrypt(model_type))
@@ -54,10 +55,3 @@ class Server:
             updates = getUpdates()
             updates = updateGlobalModel(model, updates)
             sendGlobalModel(client, updates)
-
-        print('Error (MSE) that each client gets after running the protocol:')
-        model = model(model_type, None, None, pubkey)
-        for c in clients:
-            y_pred = c.predict(X_test)
-            mse = mean_square_error(y_pred, y_test)
-            print('{:s}:\t{:.2f}'.format(c.name, mse))
