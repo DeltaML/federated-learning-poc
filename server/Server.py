@@ -6,9 +6,9 @@ import phe as paillier
 class Server:
 
     def __init__(self, key_length=20):
-        clients = []
-        keypair = paillier.generate_paillier_keypair(n_length=key_length)
-        self.pubkey, self.privkey = keypair
+        self.clients = []
+        self.keypair = paillier.generate_paillier_keypair(n_length=key_length)
+        self.pubkey, self.privkey = self.keypair
 
     def sendGlobalModel(self, modelName):
         """Encripta y envia el nombre del modelo a ser entrenado"""
@@ -16,8 +16,8 @@ class Server:
     def sendModelTypeToClient(client, model_type):
         requests.post(paillier.encrypt(model_type))
 
-    def registerClients(self, clients):
-        self.clients = clients
+    def register_client(self, client):
+        self.clients.append(client)
 
     def _getUpdateFromClient(client):
         return requests.get(client.ip + ":" + client.port + "/weights")
@@ -40,11 +40,11 @@ class Server:
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
         server = Server(key_length=config['key_length'])
         model = ModelFactory.get_model(model_type)
-        n_clients = len(clients)
+        n_clients = len(self.clients)
 
         # Instantiate the clients.
         # Each client gets the public key at creation and its own local dataset
-        for client in clients:
+        for client in self.clients:
             if not sendModelTypeToClient(client, model_type):
                 raise RuntimeError
 
@@ -53,7 +53,7 @@ class Server:
         for i in range(n_iter):
             updates = getUpdates()
             updates = updateGlobalModel(model, updates)
-            clients.sendGlobalModel(client, updates)
+            sendGlobalModel(client, updates)
 
         print('Error (MSE) that each client gets after running the protocol:')
         model = model(model_type, None, None, pubkey)
