@@ -6,6 +6,7 @@ from operations_utils.functions import get_encrypted_number, get_deserialized_pu
 from requests import post
 from Server import Server
 from ClientInstance import ClientInstance
+from service.model_service import ModelType
 
 pub_key = "92951797244797167983167141550409296171197189592094991997506301474877894634359396591953594500920983392267035342569100192517151963310836036953999162112864331801677221081621985971954201113862653384753921706561342038828618807924079228073528307264707630640359846482233951074062256062688524495232625357433668057413"
 
@@ -47,7 +48,7 @@ def register_client():
     data = request.get_json()
     new_client = ClientInstance(data, pub_key)
     server.register_client(new_client)
-    return jsonify(str(new_client))
+    return jsonify(new_client.pub_key)
 
 
 @app.route('/clients', methods=['GET'])
