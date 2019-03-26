@@ -16,8 +16,8 @@ class Server:
     def sendModelTypeToClient(client, model_type):
         requests.post(paillier.encrypt(model_type))
 
-    def register_clients(self, clients):
-        self.clients = clients
+    def register_client(self, client):
+        self.clients.append(client)
 
     def _getUpdateFromClient(client):
         return requests.get(client.ip + ":" + client.port + "/weights")

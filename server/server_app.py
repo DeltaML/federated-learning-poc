@@ -46,13 +46,13 @@ def register_client():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
     new_client = ClientInstance(data, pub_key)
-    server.register_clients(new_client)
+    server.register_client(new_client)
     return jsonify(str(new_client))
 
 
 @app.route('/clients', methods=['GET'])
 def get_clients():
-    return jsonify(server.clients)
+    return jsonify([str(client) for client in server.clients])
 
 
 @app.route('/predict', methods=['POST'])
