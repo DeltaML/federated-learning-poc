@@ -71,10 +71,14 @@ def process_weights():
     logging.info("process_weights with {}".format(data))
     # Validate model type
     model_type = data['type']
-
     if not ModelType.validate(model_type):
         raise InvalidModelException(model_type)
-
     # encrypted_model
     response = client.process(model_type, data["encrypted_model"])
     return jsonify(response)
+
+@app.route('/step', methods=['PUT'])
+def gradient_step():
+    data = request.get_json()
+    client.step(data["gradient"])
+    return jsonify(200) 

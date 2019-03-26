@@ -2,10 +2,12 @@ from client.operations_utils.functions import get_deserialized_public_key
 from client.service.model_service import ModelFactory
 from client.service.server_service import ServerService
 
+TRAINED_MODELS = {}
+
 
 class Client:
-    def __init__(self, config, X, y):
 
+    def __init__(self, config, X, y):
         self.client_id, self.client_name = config['CLIENT_ID'], config['NAME']
         self.client_ip = config['IP']
         self.client_port = config['PORT']
@@ -15,7 +17,10 @@ class Client:
 
     def process(self, model_type, encrypted_model):
         self.model = self.model if self.model else ModelFactory.get_model(model_type)
-        return self.model(self.client_name, self.X, self.y, self.pubkey).process(encrypted_model)
+        training_model = self.model(self.client_name, self.X, self.y, self.pubkey)
+        gradient = training_model.process(encrypted_model)
+        TRAINED_MODELS[self.client_id] = training_model
+        return gradient
 
     def register(self):
         response = ServerService(self.config).register(self.get_register_data())
@@ -27,6 +32,8 @@ class Client:
                 'port': self.client_port
                 }
 
+    def make_step(self, encrypted_model):
+        TRAINED_MODELS[self.client_id].gradient_step(encrypted_model)        
 
 class ClientFactory:
 

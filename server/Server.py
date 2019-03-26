@@ -2,6 +2,7 @@ from model.linear_regression import LinearRegression
 from operations_utils.functions import *
 import requests
 import phe as paillier
+from service import ModelType
 
 class Server:
 
@@ -10,9 +11,10 @@ class Server:
         self.keypair = paillier.generate_paillier_keypair(n_length=key_length)
         self.pubkey, self.privkey = self.keypair
 
-    def sendGlobalModel(self, modelName):
+    def sendGlobalModel(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
-        return requests.post()
+        payload = {"encrypted_model": weights} 
+        requests.put(client.ip + ":" + client.port + "/step", data = payload)
 
     def sendModelTypeToClient(client, model_type):
         requests.post(paillier.encrypt(model_type))
@@ -20,13 +22,13 @@ class Server:
     def register_client(self, client):
         self.clients.append(client)
 
-    def _getUpdateFromClient(client):
-        return requests.get(client.ip + ":" + client.port + "/weights")
+    def _getUpdateFromClient(client, model_type):
+        return requests.post(client.ip + ":" + client.port + "/weights", data = {"type": model_type})
 
-    def getUpdates(self):
-        return [_getUpdateFromClient(client) for client in self.clients]
+    def getUpdates(self, model_type):
+        return [_getUpdateFromClient(client, model_type) for client in self.clients]
 
-    def updateGlobalModel(self, model, updates):
+    def updateGlobalModel(self, updates):
         return server.decrypt_aggregate(sum(updates), len(self.clients))
 
     def chooseModel(self):
@@ -52,6 +54,13 @@ class Server:
         # The federated learning with gradient descent
         print('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         for i in range(n_iter):
-            updates = getUpdates()
-            updates = updateGlobalModel(model, updates)
+            updates = getUpdates(model_type, model_type)
+            updates = updateGlobalModel(updates)
             sendGlobalModel(client, updates)
+
+        print('Error (MSE) that each client gets after running the protocol:')
+        for i in len(self.clients):
+            model = model(model_type, updates[i])
+            y_pred = model.predict(X_test)
+            mse = mean_square_error(y_pred, y_test)
+            print('Client {:s}:\t{:.2f}'.format(i, mse))
