@@ -46,9 +46,11 @@ app = create_app()
 def register_client():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
+    logging.info("Register client with data {}".format(data))
     new_client = ClientInstance(data, pub_key)
     server.register_client(new_client)
-    return jsonify(new_client.pub_key)
+    response = {'pub_key': new_client.pub_key}
+    return jsonify(response)
 
 
 @app.route('/clients', methods=['GET'])
@@ -74,3 +76,8 @@ def train_model():
     #server.federated_learning()
     response = "hola"
     return jsonify(response)
+
+@app.route('/ping', methods=['POST'])
+def ping():
+    logging.info("Data {}".format(request.get_json()))
+    return jsonify("pong")

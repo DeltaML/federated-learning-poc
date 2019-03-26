@@ -7,7 +7,6 @@ from client.data.data_loader import DataLoader
 from client.exceptions.exceptions import InvalidModelException
 from client.service.client_service import ClientFactory
 from client.service.model_service import ModelType
-from client.service.server_service import ServerService
 
 dictConfig({
     'version': 1,
@@ -67,6 +66,10 @@ def handle_error(error):
 
 @app.route('/weights', methods=['POST'])
 def process_weights():
+    """
+    process weights from server
+    :return:
+    """
     data = request.get_json()
     logging.info("process_weights with {}".format(data))
     # Validate model type

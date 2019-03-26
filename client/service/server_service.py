@@ -12,4 +12,7 @@ class ServerService:
         :param client_data:
         :return:
         """
-        return requests.post(self.server_host, data=client_data).raise_for_status()
+        server_register_url = self.server_host + "/clients/register"
+        response = requests.post(server_register_url, json=client_data)
+        response.raise_for_status()
+        return response.json()
