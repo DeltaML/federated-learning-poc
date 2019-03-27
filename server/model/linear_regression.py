@@ -1,6 +1,6 @@
 import numpy as np
 
-from operations_utils.functions import get_encrypted_number, encrypt_vector, sum_encrypted_vectors, \
+from commons.operations_utils.functions import get_encrypted_number, encrypt_vector, sum_encrypted_vectors, \
     get_serialized_gradient
 
 

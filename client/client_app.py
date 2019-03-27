@@ -3,10 +3,10 @@ import os
 from logging.config import dictConfig
 
 from flask import Flask, request, jsonify
-from client.data.data_loader import DataLoader
-from client.exceptions.exceptions import InvalidModelException
-from client.service.client_service import ClientFactory
-from client.service.model_service import ModelType
+from data.data_loader import DataLoader
+from exceptions.exceptions import InvalidModelException
+from service.client_service import ClientFactory
+from service.model_service import ModelType
 
 dictConfig({
     'version': 1,

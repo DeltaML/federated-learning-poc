@@ -1,7 +1,7 @@
 from enum import Enum
 
-from client.exceptions.exceptions import InvalidModelException
-from client.model.linear_regression import LinearRegression
+from exceptions.exceptions import InvalidModelException
+from commons.model.linear_regression import LinearRegression
 
 
 class ModelType(Enum):

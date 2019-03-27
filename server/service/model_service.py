@@ -1,6 +1,6 @@
 from enum import Enum
 
-from model.linear_regression import LinearRegression
+from commons.model.linear_regression import LinearRegression
 
 
 class ModelType(Enum):

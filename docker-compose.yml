@@ -1,0 +1,18 @@
+version: '3'
+services:
+  cte_server:
+    network_mode: host
+    build:
+      context: ./
+      dockerfile: './server/Dockerfile'
+    container_name: cte_server
+    ports:
+       - "8080:8080"
+  cte_client:
+    network_mode: host
+    build:
+      context: ./
+      dockerfile: './client/Dockerfile'
+    container_name: cte_client
+    ports:
+     - "5000:5000"

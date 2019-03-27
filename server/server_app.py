@@ -2,8 +2,6 @@ import logging
 import sys, os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from operations_utils.functions import get_encrypted_number, get_deserialized_public_key, get_serialized_gradient
-from requests import post
 from Server import Server
 from ClientInstance import ClientInstance
 from service.model_service import ModelType

@@ -1,6 +1,6 @@
-from client.operations_utils.functions import get_deserialized_public_key
-from client.service.model_service import ModelFactory
-from client.service.server_service import ServerService
+from commons.operations_utils.functions import get_deserialized_public_key
+from service.model_service import ModelFactory
+from service.server_service import ServerService
 
 TRAINED_MODELS = {}
 

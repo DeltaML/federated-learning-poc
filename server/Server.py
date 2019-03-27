@@ -1,5 +1,5 @@
 from model.linear_regression import LinearRegression
-from operations_utils.functions import *
+from commons.operations_utils.functions import *
 import requests
 import phe as paillier
 from service import ModelType
