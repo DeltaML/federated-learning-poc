@@ -8,7 +8,7 @@ from service.model_service import ModelType
 class Server:
     def __init__(self):
         self.clients = []
-        self.keypair = paillier.generate_paillier_keypair(n_length=config['key_length'])
+        self.keypair = paillier.generate_paillier_keypair(n_length=20)
         self.pubkey, self.privkey = self.keypair
 
     def sendGlobalModel(self, weights):
