@@ -1,12 +1,12 @@
 import logging
 import os
 from logging.config import dictConfig
-
 from flask import Flask, request, jsonify
 from data.data_loader import DataLoader
 from exceptions.exceptions import InvalidModelException
 from service.client_service import ClientFactory
 from service.model_service import ModelType
+
 
 dictConfig({
     'version': 1,
@@ -60,7 +60,6 @@ def handle_error(error):
             'message': message
         }
     }
-
     return jsonify(response), status_code
 
 
@@ -79,6 +78,7 @@ def process_weights():
     # encrypted_model
     response = client.process(model_type, data["encrypted_model"])
     return jsonify(response)
+
 
 @app.route('/step', methods=['PUT'])
 def gradient_step():

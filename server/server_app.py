@@ -1,10 +1,11 @@
 import logging
-import sys, os
+import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from Server import Server
 from ClientInstance import ClientInstance
 from service.model_service import ModelType
+
 
 pub_key = "92951797244797167983167141550409296171197189592094991997506301474877894634359396591953594500920983392267035342569100192517151963310836036953999162112864331801677221081621985971954201113862653384753921706561342038828618807924079228073528307264707630640359846482233951074062256062688524495232625357433668057413"
 
@@ -35,9 +36,11 @@ def create_app():
         pass
     return flask_app
 
+
 CLIENTS = []
 server = Server()
 app = create_app()
+
 
 # Single endpoints
 @app.route('/clients/register', methods=['POST'])
@@ -70,10 +73,11 @@ def train_model():
     # Validate model type
     model_type = data['type']
     if not ModelType.validate(model_type):
-        raise InvalidModelException(model_type)
-    #server.federated_learning()
+        raise ValueError(model_type)  # MODIFICAR
+    # server.federated_learning()
     response = "hola"
     return jsonify(response)
+
 
 @app.route('/ping', methods=['POST'])
 def ping():

@@ -49,10 +49,10 @@ class Client:
                 }
 
     def make_step(self, encrypted_model):
-        TRAINED_MODELS[self.client_id].gradient_step(encrypted_model)        
+        TRAINED_MODELS[self.client_id].gradient_step(encrypted_model)
+
 
 class ClientFactory:
-
     @classmethod
     def create_client(cls, name, X, y):
         """

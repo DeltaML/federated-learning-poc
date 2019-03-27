@@ -1,8 +1,3 @@
-import numpy as np
-
-from commons.operations_utils.functions import get_encrypted_number, encrypt_vector, sum_encrypted_vectors, \
-    get_serialized_gradient
-
 
 class LinearRegression:
     """Runs linear regression with local data or by gradient steps,
