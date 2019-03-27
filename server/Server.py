@@ -10,33 +10,39 @@ class Server:
         self.clients = []
         self.keypair = paillier.generate_paillier_keypair(n_length=20)
         self.pubkey, self.privkey = self.keypair
+        # TODO: add dataset to test
+        self.X_test, self.y_test = None, None
 
-    def sendGlobalModel(self, weights):
+    def send_global_model(self, client, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
         payload = {"encrypted_model": weights}
-        requests.put(client.ip + ":" + client.port + "/step", data=payload)
+        requests.put(client.ip + ":" + client.port + "/step", json=payload)
 
     def register_client(self, client):
         self.clients.append(client)
 
-    def _getUpdateFromClient(self, client, model_type):
+    def _get_update_from_client(self, client, model_type):
         url = client.ip + ":" + client.port + "/weights"
         payload = {"type": model_type}
-        return requests.post(url, data=payload)
+        return requests.post(url, json=payload)
 
-    def getUpdates(self, model_type):
-        return [_getUpdateFromClient(client, model_type) for client in self.clients]
+    def get_updates(self, model_type):
+        return [self._get_update_from_client(client, model_type) for client in self.clients]
 
-    def updateGlobalModel(self, updates):
-        return server.decrypt_aggregate(sum(updates), len(self.clients))
+    def update_global_model(self, updates):
+        return decrypt_aggregate(sum(updates), len(self.clients))
 
-    def chooseModel(self):
+    def choose_model(self):
+        """
+        @Unused
+        :return:
+        """
         return LinearRegressionModel
 
     def decrypt_aggregate(self, input_model, n_clients):
         return decrypt_vector(self.privkey, input_model) / n_clients
 
-    def federated_learning(self, X_test, y_test, config):
+    def federated_learning(self, config):
         n_iter = config['n_iter']
         # Instantiate the server and generate private and public keys
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
@@ -46,9 +52,9 @@ class Server:
         # The federated learning with gradient descent
         print('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         for i in range(n_iter):
-            updates = getUpdates(model_type, model_type)
-            updates = updateGlobalModel(updates)
-            sendGlobalModel(client, updates)
+            updates = self.get_updates(model_type, model_type)
+            updates = self.update_global_model(updates)
+            self.send_global_model(client, updates)
         print('Error (MSE) that each client gets after running the protocol:')
         for i in len(self.clients):
             model = model(model_type, updates[i])
