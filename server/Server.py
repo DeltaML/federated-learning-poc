@@ -19,7 +19,7 @@ class Server:
     def register_client(self, client):
         self.clients.append(client)
 
-    def _getUpdateFromClient(client, model_type):
+    def _getUpdateFromClient(self, client, model_type):
         url = client.ip + ":" + client.port + "/weights"
         payload = {"type": model_type}
         return requests.post(url, data=payload)
@@ -36,16 +36,13 @@ class Server:
     def decrypt_aggregate(self, input_model, n_clients):
         return decrypt_vector(self.privkey, input_model) / n_clients
 
-    def federated_learning(X_test, y_test, config):
+    def federated_learning(self, X_test, y_test, config):
         n_iter = config['n_iter']
         # Instantiate the server and generate private and public keys
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
         model = ModelFactory.get_model(model_type)
         # Instantiate the clients.
         # Each client gets the public key at creation and its own local dataset
-        for client in self.clients:
-            if not sendModelTypeToClient(client, model_type):
-                raise RuntimeError
         # The federated learning with gradient descent
         print('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         for i in range(n_iter):
