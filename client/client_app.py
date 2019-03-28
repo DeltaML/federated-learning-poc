@@ -7,7 +7,7 @@ from commons.data.data_loader import DataLoader
 from exceptions.exceptions import InvalidModelException
 from service.client_service import ClientFactory
 from service.model_service import ModelType
-
+import numpy as np
 
 dictConfig({
     'version': 1,
@@ -87,8 +87,12 @@ def process_weights():
 @app.route('/step', methods=['PUT'])
 def gradient_step():
     data = request.get_json()
-    client.step(data["gradient"])
+    client.step(np.asarray(data["gradient"]))
     return jsonify(200)
+
+@app.route('/model', methods=['GET'])
+def getModel():
+    return jsonify(client.model.weights.tolist())
 
 
 @app.route('/ping', methods=['GET'])

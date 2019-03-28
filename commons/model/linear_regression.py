@@ -17,6 +17,9 @@ class LinearRegression:
         self.X, self.y = X, y
         self.weights = np.zeros(X.shape[1])
 
+    def set_weights(self, weights):
+        self.weights = weights
+
     def fit(self, n_iter, eta=0.01):
         """Linear regression for n_iter"""
         for _ in range(n_iter):
@@ -40,7 +43,8 @@ class LinearRegression:
     def encrypted_gradient(self):
         """Compute and encrypt gradient."""
         gradient = self.compute_gradient()
-        return encrypt_vector(self.pubkey, gradient)
+        return gradient.tolist()
+        #return encrypt_vector(self.pubkey, gradient)
 
 
     # def process(self):
@@ -50,4 +54,5 @@ class LinearRegression:
         # return [get_serialized_gradient(value) for value in self.encrypted_gradient(encrypt_aggr)]
 
     def process(self):
-        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]
+        return self.encrypted_gradient()
+        #return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]

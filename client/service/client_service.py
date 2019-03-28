@@ -5,6 +5,8 @@ from service.server_service import ServerService
 
 
 class Client:
+
+    model = None
     def __init__(self, config, X, y):
         """
         :param config:
@@ -15,12 +17,11 @@ class Client:
         self.client_name = "CLIENT {}".format(self.client_id)
         self.config = config
         self.X, self.y = X, y
-        self.model = None
         self.pubkey = None
 
     def _create_model(self, model_type):
-        model = ModelFactory.get_model(model_type)
-        return model(self.client_name, self.X, self.y, self.pubkey)
+        new_model = ModelFactory.get_model(model_type)
+        return new_model(self.client_name, self.X, self.y, self.pubkey)
 
     def process(self, model_type):
         """

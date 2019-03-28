@@ -78,7 +78,7 @@ def train_model():
     data_loader.load_data(2)
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
-    response = server.federated_learning(model_type, data_loader.X_test[-1], data_loader.y_test[-1])
+    response = server.federated_learning(model_type, data_loader.X_test, data_loader.y_test)
     return jsonify(response)
 
 
