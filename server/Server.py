@@ -5,6 +5,9 @@ import requests
 import phe as paillier
 from service.model_service import *
 
+# TODO: Add in config
+CLIENT_PORT = 5000
+
 
 class Server:
     def __init__(self):
@@ -24,9 +27,10 @@ class Server:
         self.clients.append(client)
 
     def _get_update_from_client(self, client, model_type):
-        url = "http://" + str(client.ip) + ":" + str(client.port) + "/weights"
+        url = "http://{}:{}/weights".format(client.ip, CLIENT_PORT)
         logging.info("CLIENT " + str(client.id) + " URL:" + url)
-        payload = {"type": model_type}
+        # TODO: Refactor this
+        payload = {"type": model_type, "encrypted_model": {"values":[]}}
         return requests.post(url, json=payload)
 
     def get_updates(self, model_type):
