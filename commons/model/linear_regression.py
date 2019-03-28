@@ -37,22 +37,17 @@ class LinearRegression:
         """Score test data"""
         return X.dot(self.weights)
 
-    def encrypted_gradient(self, sum_to=None):
-        """Compute and encrypt gradient.
-
-        When `sum_to` is given, sum the encrypted gradient to it, assumed
-        to be another vector of the same size
-        """
+    def encrypted_gradient(self):
+        """Compute and encrypt gradient."""
         gradient = self.compute_gradient()
-        encrypted_gradient = encrypt_vector(self.pubkey, gradient)
+        return encrypt_vector(self.pubkey, gradient)
 
-        if sum_to is not None:
-            return sum_encrypted_vectors(sum_to, encrypted_gradient)
-        else:
-            return encrypted_gradient
 
-    def process(self, encrypted_model):
+    # def process(self):
         # encrypt_aggr
-        encrypt_aggr = [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for
-                        encrypt_value in encrypted_model['values']]
-        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient(encrypt_aggr)]
+        # encrypt_aggr = [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for
+        #                encrypt_value in encrypted_model['values']]
+        # return [get_serialized_gradient(value) for value in self.encrypted_gradient(encrypt_aggr)]
+
+    def process(self):
+        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]

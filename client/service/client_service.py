@@ -4,11 +4,9 @@ from service.model_service import ModelFactory
 from service.server_service import ServerService
 
 
-
 class Client:
     def __init__(self, config, X, y):
         """
-
         :param config:
         :param X:
         :param y:
@@ -19,18 +17,20 @@ class Client:
         self.X, self.y = X, y
         self.model = None
         self.pubkey = None
-        self.training_model = None
 
-    def process(self, model_type, encrypted_model):
+    def _create_model(self, model_type):
+        model = ModelFactory.get_model(model_type)
+        return model(self.client_name, self.X, self.y, self.pubkey)
+
+    def process(self, model_type):
         """
         Process to run encrypted model
         :param model_type:
         :param encrypted_model:
         :return:
         """
-        self.model = self.model if self.model else ModelFactory.get_model(model_type)
-        self.training_model = self.model(self.client_name, self.X, self.y, self.pubkey)
-        return self.training_model.process(encrypted_model)
+        self.model = self.model if self.model else self._create_model(model_type)
+        return self.model.process()
 
     def register(self):
         """
@@ -44,7 +44,7 @@ class Client:
         return {'id': self.client_id}
 
     def step(self, encrypted_model):
-        self.training_model.gradient_step(encrypted_model)
+        self.model.gradient_step(encrypted_model)
 
 
 class ClientFactory:
