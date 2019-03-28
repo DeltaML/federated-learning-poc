@@ -1,7 +1,7 @@
 import numpy as np
 
 from commons.operations_utils.functions import get_encrypted_number, encrypt_vector, sum_encrypted_vectors, \
-    get_serialized_gradient
+    get_serialized_encrypted_value
 
 
 class LinearRegression:
@@ -55,4 +55,4 @@ class LinearRegression:
         # encrypt_aggr
         encrypt_aggr = [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for
                         encrypt_value in encrypted_model['values']]
-        return [get_serialized_gradient(value) for value in self.encrypted_gradient(encrypt_aggr)]
+        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient(encrypt_aggr)]

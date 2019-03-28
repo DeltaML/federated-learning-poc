@@ -3,7 +3,6 @@ from commons.operations_utils.functions import get_deserialized_public_key
 from service.model_service import ModelFactory
 from service.server_service import ServerService
 
-TRAINED_MODELS = {}
 
 
 class Client:
@@ -20,6 +19,7 @@ class Client:
         self.X, self.y = X, y
         self.model = None
         self.pubkey = None
+        self.training_model = None
 
     def process(self, model_type, encrypted_model):
         """
@@ -29,10 +29,8 @@ class Client:
         :return:
         """
         self.model = self.model if self.model else ModelFactory.get_model(model_type)
-        training_model = self.model(self.client_name, self.X, self.y, self.pubkey)
-        gradient = training_model.process(encrypted_model)
-        TRAINED_MODELS[self.client_id] = training_model
-        return gradient
+        self.training_model = self.model(self.client_name, self.X, self.y, self.pubkey)
+        return self.training_model.process(encrypted_model)
 
     def register(self):
         """
@@ -45,8 +43,8 @@ class Client:
     def _get_register_data(self):
         return {'id': self.client_id}
 
-    def make_step(self, encrypted_model):
-        TRAINED_MODELS[self.client_id].gradient_step(encrypted_model)
+    def step(self, encrypted_model):
+        self.training_model.gradient_step(encrypted_model)
 
 
 class ClientFactory:

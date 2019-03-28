@@ -1,5 +1,5 @@
 import logging
-from model.linear_regression import LinearRegression
+from commons.model.linear_regression import LinearRegression
 from commons.operations_utils.functions import *
 import requests
 import phe as paillier
@@ -30,14 +30,14 @@ class Server:
         url = "http://{}:{}/weights".format(client.ip, CLIENT_PORT)
         logging.info("CLIENT " + str(client.id) + " URL:" + url)
         # TODO: Refactor this
-        payload = {"type": model_type, "encrypted_model": {"values":[]}}
+        payload = {"type": model_type, "encrypted_model": {"values": []}}
         return requests.post(url, json=payload)
 
     def get_updates(self, model_type):
         return [self._get_update_from_client(client, model_type) for client in self.clients]
 
     def update_global_model(self, updates):
-        return decrypt_aggregate(sum(updates), len(self.clients))
+        return self.decrypt_aggregate(sum(updates), len(self.clients))
 
     def choose_model(self):
         """

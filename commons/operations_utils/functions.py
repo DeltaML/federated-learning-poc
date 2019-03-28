@@ -35,5 +35,5 @@ def get_encrypted_number(pub_key, ciphertext, exponent):
     return paillier.EncryptedNumber(pub_key, int(ciphertext), int(exponent))
 
 
-def get_serialized_gradient(value):
+def get_serialized_encrypted_value(value):
     return dict(ciphertext=str(value.ciphertext()), exponent=value.exponent)
