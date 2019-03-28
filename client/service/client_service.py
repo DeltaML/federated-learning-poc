@@ -3,10 +3,10 @@ from commons.operations_utils.functions import get_deserialized_public_key
 from service.model_service import ModelFactory
 from service.server_service import ServerService
 
+
 class Client:
     def __init__(self, config, X, y):
         """
-
         :param config:
         :param X:
         :param y:
@@ -43,8 +43,8 @@ class Client:
     def _get_register_data(self):
         return {'id': self.client_id}
 
-    def make_step(self, encrypted_model):
-        TRAINED_MODELS[self.client_id].gradient_step(encrypted_model)
+    def step(self, encrypted_model):
+        self.model.gradient_step(encrypted_model)
 
 
 class ClientFactory:

@@ -1,7 +1,7 @@
 import numpy as np
 
 from commons.operations_utils.functions import get_encrypted_number, encrypt_vector, sum_encrypted_vectors, \
-    get_serialized_gradient
+    get_serialized_encrypted_value
 
 
 class LinearRegression:

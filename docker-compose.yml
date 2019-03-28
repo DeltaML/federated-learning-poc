@@ -13,8 +13,6 @@ services:
     build:
       context: ./
       dockerfile: './client/Dockerfile'
-    environment:
-      - SERVER_NAME=TODO
     ports:
      - "5000"
     networks:

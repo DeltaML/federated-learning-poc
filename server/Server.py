@@ -1,5 +1,5 @@
 import logging
-from model.linear_regression import LinearRegression
+from commons.model.linear_regression import LinearRegression
 from commons.operations_utils.functions import *
 import requests
 import phe as paillier
