@@ -1,5 +1,6 @@
 import logging
 import os
+from random import randint
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from commons.data.data_loader import DataLoader
@@ -38,13 +39,16 @@ def create_app():
     return flask_app
 
 
+def get_client_segment(n_segments):
+    return randint(0, n_segments-1)
+
+
 # Global variables
 SERVER_NAME = os.environ.get("SERVER_NAME", default="SERVER_NAME")
 app = create_app()
 data_loader = DataLoader()
 data_loader.load_data(app.config['N_SEGMENTS'])
-client_id = app.config['CLIENT_ID']
-X_client, y_client = data_loader.get_sub_set(client_id)
+X_client, y_client = data_loader.get_sub_set(get_client_segment(app.config['N_SEGMENTS']))
 client = ClientFactory.create_client(app.config, X_client, y_client)
 client.register()
 

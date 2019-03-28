@@ -1,3 +1,4 @@
+import uuid
 from commons.operations_utils.functions import get_deserialized_public_key
 from service.model_service import ModelFactory
 from service.server_service import ServerService
@@ -13,9 +14,8 @@ class Client:
         :param X:
         :param y:
         """
-        self.client_id, self.client_name = config['CLIENT_ID'], config['NAME']
-        self.client_ip = config['IP']
-        self.client_port = config['PORT']
+        self.client_id = str(uuid.uuid1())
+        self.client_name = "CLIENT {}".format(self.client_id)
         self.config = config
         self.X, self.y = X, y
         self.model = None
@@ -43,10 +43,7 @@ class Client:
         self.pubkey = get_deserialized_public_key(response['pub_key'])
 
     def _get_register_data(self):
-        return {'id': self.client_id,
-                'ip': self.client_ip,
-                'port': self.client_port
-                }
+        return {'id': self.client_id}
 
     def make_step(self, encrypted_model):
         TRAINED_MODELS[self.client_id].gradient_step(encrypted_model)

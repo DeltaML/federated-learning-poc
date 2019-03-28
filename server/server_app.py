@@ -48,6 +48,7 @@ app = create_app()
 def register_client():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
+    data["ip"], data["port"] = request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']
     logging.info("Register client with data {}".format(data))
     new_client = ClientInstance(data, pub_key)
     server.register_client(new_client)
