@@ -44,7 +44,6 @@ def get_client_segment(n_segments):
 
 
 # Global variables
-SERVER_NAME = os.environ.get("SERVER_NAME", default="SERVER_NAME")
 app = create_app()
 data_loader = DataLoader()
 data_loader.load_data(app.config['N_SEGMENTS'])
