@@ -81,7 +81,7 @@ def process_weights():
     if not ModelType.validate(model_type):
         raise InvalidModelException(model_type)
     # encrypted_model
-    response = client.process(model_type, data["encrypted_model"])
+    response = client.process(model_type)
     return jsonify(response)
 
 

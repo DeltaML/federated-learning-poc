@@ -3,9 +3,6 @@ from commons.operations_utils.functions import get_deserialized_public_key
 from service.model_service import ModelFactory
 from service.server_service import ServerService
 
-TRAINED_MODELS = {}
-
-
 class Client:
     def __init__(self, config, X, y):
         """
@@ -21,18 +18,19 @@ class Client:
         self.model = None
         self.pubkey = None
 
-    def process(self, model_type, encrypted_model):
+    def _create_model(self, model_type):
+        model = ModelFactory.get_model(model_type)
+        return model(self.client_name, self.X, self.y, self.pubkey)
+
+    def process(self, model_type):
         """
         Process to run encrypted model
         :param model_type:
         :param encrypted_model:
         :return:
         """
-        self.model = self.model if self.model else ModelFactory.get_model(model_type)
-        training_model = self.model(self.client_name, self.X, self.y, self.pubkey)
-        gradient = training_model.process(encrypted_model)
-        TRAINED_MODELS[self.client_id] = training_model
-        return gradient
+        self.model = self.model if self.model else self._create_model(model_type)
+        return self.model.process()
 
     def register(self):
         """

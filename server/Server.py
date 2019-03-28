@@ -4,6 +4,8 @@ from commons.operations_utils.functions import *
 import requests
 import phe as paillier
 from service.model_service import *
+from functools import reduce
+
 
 # TODO: Add in config
 CLIENT_PORT = 5000
@@ -30,14 +32,16 @@ class Server:
         url = "http://{}:{}/weights".format(client.ip, CLIENT_PORT)
         logging.info("CLIENT " + str(client.id) + " URL:" + url)
         # TODO: Refactor this
-        payload = {"type": model_type, "encrypted_model": {"values":[]}}
-        return requests.post(url, json=payload)
+        payload = {"type": model_type}
+        response = requests.post(url, json=payload).json()
+        return [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for encrypt_value in response]
 
     def get_updates(self, model_type):
         return [self._get_update_from_client(client, model_type) for client in self.clients]
 
-    def update_global_model(self, updates):
-        return decrypt_aggregate(sum(updates), len(self.clients))
+    def federated_averaging(self, updates):
+        acc = reduce(sum_encrypted_vectors, updates)
+        return self.decrypt_aggregate(acc, len(self.clients))
 
     def choose_model(self):
         """
@@ -50,17 +54,20 @@ class Server:
         return decrypt_vector(self.privkey, input_model) / n_clients
 
     def federated_learning(self, model_type, X_test, y_test, config=None):
-        n_iter = 10  # config['n_iter']
+        n_iter = 3  # config['n_iter']
         # Instantiate the server and generate private and public keys
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
         model = ModelFactory.get_model(model_type)
         # Instantiate the clients.
         # Each client gets the public key at creation and its own local dataset
         # The federated learning with gradient descent
-        print('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
+        logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         for i in range(n_iter):
+            logging.info("Iteration {:d}".format(i))
             updates = self.get_updates(model_type)
-            updates = self.update_global_model(updates)
+            logging.info("Encrypted gradient " + str(updates))
+            updates = self.federated_averaging(updates)
+            logging.info("Averaged gradients" + str(updates))
             self.send_global_model(client, updates)
         print('Error (MSE) that each client gets after running the protocol:')
         for i in len(self.clients):
