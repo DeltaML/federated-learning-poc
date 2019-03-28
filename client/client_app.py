@@ -85,4 +85,9 @@ def process_weights():
 def gradient_step():
     data = request.get_json()
     client.step(data["gradient"])
-    return jsonify(200) 
+    return jsonify(200)
+
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify(200)

@@ -70,14 +70,14 @@ def predict():
 @app.route('/model', methods=['POST'])
 def train_model():
     data = request.get_json()
-    logging.info("process_weights with {}".format(data))
+    logging.info("Initializing model trainig acording to request {}".format(data))
     # Validate model type
     model_type = data['type']
     data_loader = DataLoader()
-    X, y, X_test, y_test = data_loader.load_data(2)
+    data_loader.load_data(2)
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
-    response = server.federated_learning(X_test[-1], y_test[-1])
+    response = server.federated_learning(model_type, data_loader.X_test[-1], data_loader.y_test[-1])
     return jsonify(response)
 
 
