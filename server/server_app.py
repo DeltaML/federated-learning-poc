@@ -2,6 +2,7 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
+from commons.data.data_loader import DataLoader
 from Server import Server
 from ClientInstance import ClientInstance
 from service.model_service import ModelType
@@ -73,9 +74,11 @@ def train_model():
     logging.info("process_weights with {}".format(data))
     # Validate model type
     model_type = data['type']
+    data_loader = DataLoader()
+    X, y, X_test, y_test = data_loader.load_data(2)
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
-    response = server.federated_learning()
+    response = server.federated_learning(X_test[-1], y_test[-1])
     return jsonify(response)
 
 

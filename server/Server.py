@@ -42,8 +42,9 @@ class Server:
     def decrypt_aggregate(self, input_model, n_clients):
         return decrypt_vector(self.privkey, input_model) / n_clients
 
-    def federated_learning(self, config):
-        n_iter = config['n_iter']
+
+    def federated_learning(self, X_test, y_test, config=None):
+        n_iter = 10  # config['n_iter']
         # Instantiate the server and generate private and public keys
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
         model = ModelFactory.get_model(model_type)
