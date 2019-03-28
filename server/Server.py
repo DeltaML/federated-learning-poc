@@ -33,8 +33,9 @@ class Server:
         logging.info("CLIENT " + str(client.id) + " URL:" + url)
         # TODO: Refactor this
         payload = {"type": model_type}
-        response = requests.post(url, json=payload).json()
-        return [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for encrypt_value in response]
+        response = requests.post(url, json=payload)
+        logging.info("Response from client " + client.id + ": " + response.text)
+        return [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for encrypt_value in response.json()]
 
     def get_updates(self, model_type):
         return [self._get_update_from_client(client, model_type) for client in self.clients]
@@ -65,7 +66,7 @@ class Server:
         for i in range(n_iter):
             logging.info("Iteration {:d}".format(i))
             updates = self.get_updates(model_type)
-            logging.info("Encrypted gradient " + str(updates))
+            logging.info("Encrypted gradients " + str(updates))
             updates = self.federated_averaging(updates)
             logging.info("Averaged gradients" + str(updates))
             self.send_global_model(client, updates)

@@ -50,4 +50,4 @@ class LinearRegression:
         # return [get_serialized_gradient(value) for value in self.encrypted_gradient(encrypt_aggr)]
 
     def process(self):
-        return [get_serialized_gradient(value) for value in self.encrypted_gradient()]
+        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]
