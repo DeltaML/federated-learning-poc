@@ -1,5 +1,4 @@
 import logging
-from commons.model.linear_regression import LinearRegression
 from commons.operations_utils.functions import *
 import requests
 import phe as paillier
@@ -31,12 +30,9 @@ class Server:
 
     def _get_update_from_client(self, client, model_type):
         url = "http://{}:{}/weights".format(client.ip, CLIENT_PORT)
-        #logging.info("CLIENT " + str(client.id) + " URL:" + url)
         # TODO: Refactor this
         payload = {"type": model_type}
         response = requests.post(url, json=payload)
-        #logging.info("Response from client " + client.id + ": " + response.text)
-        #return response.json()
         return [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for encrypt_value in response.json()]
 
     def get_updates(self, model_type):
@@ -66,6 +62,7 @@ class Server:
         return models
 
     def federated_learning(self, model_type, X_test, y_test, config=None):
+        logging.info("Init federated_learning")
         n_iter = int(config['n_iter'])
         # Instantiate the server and generate private and public keys
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
@@ -75,19 +72,18 @@ class Server:
         # The federated learning with gradient descent
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         for i in range(n_iter):
-            #logging.info("Iteration {:d}".format(i))
             updates = self.get_updates(model_type)
-            #logging.info("Encrypted gradients " + str(updates))
             updates = self.federated_averaging(updates)
-            #logging.info("Averaged gradients" + str(updates))
             self.send_global_model(updates)
             models = self.get_trained_models()
         print('Error (MSE) that each client gets after running the protocol:')
-        #logging.info(X_test)
-        #logging.info(y_test)
+        result = dict()
         for i in range(len(self.clients)):
             trained_model =  model(model_type, X_test, y_test)  # updates[i])
             trained_model.set_weights(np.asarray(models[i]))
             y_pred = trained_model.predict(X_test)
             mse = mean_square_error(y_pred, y_test)
+            result[i] = mse
             logging.info('Client {:d}:\t{:.2f}'.format(i, mse))
+
+        return result

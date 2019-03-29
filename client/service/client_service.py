@@ -2,7 +2,6 @@ import uuid
 from commons.operations_utils.functions import get_deserialized_public_key
 from service.model_service import ModelFactory
 from service.server_service import ServerService
-from random import randint
 
 
 config = {

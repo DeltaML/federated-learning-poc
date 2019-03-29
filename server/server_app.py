@@ -1,12 +1,16 @@
 import logging
 import os
+import threading
+import requests
+import asyncio
+import concurrent.futures
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from commons.data.data_loader import DataLoader
 from Server import Server
 from ClientInstance import ClientInstance
 from service.model_service import ModelType
-
+from threading import Thread
 
 
 dictConfig({
@@ -91,3 +95,32 @@ def train_model():
 def ping():
     logging.info("Data {}".format(request.get_json()))
     return jsonify("pong")
+
+
+def async_processing(request_env, call_back_endpoint, func, *args):
+    logging.info("process_in_background...")
+    remote_host = "http://{}:{}".format(request_env['REMOTE_ADDR'], 9090)
+    call_back_url = "{}/{}".format(remote_host, call_back_endpoint)
+    logging.info("call_back_url {}".format(call_back_url))
+    result = func(*args)
+    requests.post(call_back_url, json=result)
+
+
+def process_in_background(data, data_loader):
+    args = request.environ, data["call_back_endpoint"], server.federated_learning, data['type'], data_loader.X_test, data_loader.y_test, config
+    Thread(target=async_processing, args=args).start()
+
+
+@app.route('/async', methods=['POST'])
+def train_model_async():
+    data = request.get_json()
+    logging.info("Initializing async model trainig acording to request {}".format(data))
+    logging.info("host {} port {}".format(request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']))
+    # Validate model type
+    model_type = data['type']
+    if not ModelType.validate(model_type):
+        raise ValueError(model_type)  # MODIFICAR
+    data_loader = DataLoader()
+    data_loader.load_data(5)
+    process_in_background(data, data_loader)
+    return jsonify("ok"), 200
