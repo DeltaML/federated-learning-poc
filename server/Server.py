@@ -10,7 +10,11 @@ import numpy as np
 
 # TODO: Add in config
 CLIENT_PORT = 5000
-
+config = {
+    'n_clients': 5,
+    'key_length': 1024,
+    'n_iter': 50,
+}
 
 class Server:
     def __init__(self):
@@ -67,7 +71,7 @@ class Server:
         return models
 
     def federated_learning(self, model_type, X_test, y_test, config=None):
-        n_iter = 3  # config['n_iter']
+        n_iter = 50  # config['n_iter']
         # Instantiate the server and generate private and public keys
         # NOTE: using smaller keys sizes wouldn't be cryptographically safe
         model = ModelFactory.get_model(model_type)
@@ -87,8 +91,8 @@ class Server:
         logging.info(X_test)
         logging.info(y_test)
         for i in range(len(self.clients)):
-            model =  model(model_type, X_test, y_test)  # updates[i])
-            model.set_weights(np.asarray(models[i]))
-            y_pred = model.predict(X_test)
+            trained_model =  model(model_type, X_test, y_test)  # updates[i])
+            trained_model.set_weights(np.asarray(models[i]))
+            y_pred = trained_model.predict(X_test)
             mse = mean_square_error(y_pred, y_test)
             logging.info('Client {:d}:\t{:.2f}'.format(i, mse))

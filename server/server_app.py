@@ -51,7 +51,7 @@ def register_client():
     logging.info("Register client with data {}".format(data))
     new_client = ClientInstance(data, server.pubkey.n)
     server.register_client(new_client)
-    response = {'pub_key': new_client.pub_key}
+    response = {'pub_key': new_client.pub_key, 'number': len(server.clients)}
     return jsonify(response)
 
 
@@ -74,7 +74,7 @@ def train_model():
     # Validate model type
     model_type = data['type']
     data_loader = DataLoader()
-    data_loader.load_data(2)
+    data_loader.load_data(5)
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
     response = server.federated_learning(model_type, data_loader.X_test, data_loader.y_test)
