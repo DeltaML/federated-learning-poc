@@ -70,7 +70,7 @@ def process_weights():
     :return:
     """
     data = request.get_json()
-    logging.info("process_weights with {}".format(data))
+    #logging.info("process_weights with {}".format(data))
     # Validate model type
     model_type = data['type']
     if not ModelType.validate(model_type):

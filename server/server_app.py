@@ -25,6 +25,12 @@ dictConfig({
     }
 })
 
+config = {
+    'n_clients': 5,
+    'key_length': 1024,
+    'n_iter': 40
+}
+
 
 def create_app():
     # create and configure the app
@@ -38,7 +44,7 @@ def create_app():
 
 
 CLIENTS = []
-server = Server()
+server = Server(config)
 app = create_app()
 
 
@@ -77,7 +83,7 @@ def train_model():
     data_loader.load_data(5)
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
-    response = server.federated_learning(model_type, data_loader.X_test, data_loader.y_test)
+    response = server.federated_learning(model_type, data_loader.X_test, data_loader.y_test, config)
     return jsonify(response)
 
 

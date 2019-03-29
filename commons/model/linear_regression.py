@@ -43,8 +43,8 @@ class LinearRegression:
     def encrypted_gradient(self):
         """Compute and encrypt gradient."""
         gradient = self.compute_gradient()
-        return gradient.tolist()
-        #return encrypt_vector(self.pubkey, gradient)
+        #return gradient.tolist()
+        return encrypt_vector(self.pubkey, gradient)
 
 
     # def process(self):
@@ -54,5 +54,5 @@ class LinearRegression:
         # return [get_serialized_gradient(value) for value in self.encrypted_gradient(encrypt_aggr)]
 
     def process(self):
-        return self.encrypted_gradient()
-        #return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]
+        #return self.encrypted_gradient()
+        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]
