@@ -3,10 +3,11 @@ import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from commons.data.data_loader import DataLoader
-from exceptions.exceptions import InvalidModelException
-from service.client_service import ClientFactory
-from service.model_service import ModelType
-import numpy as np
+from client.exceptions.exceptions import InvalidModelException
+from client.service.client_service import ClientFactory
+from client.service.model_service import ModelType
+from client.service.encryption_service import EncryptionService
+
 
 dictConfig({
     'version': 1,
@@ -38,15 +39,26 @@ def create_app():
     return flask_app
 
 
+def register_client(client, config):
+    if config['REGISTRATION_ENABLE']:
+        client.register(config['N_SEGMENTS'])
+        logging.info("Register Number" + str(client.register_number))
+
+
 # Global variables
 app = create_app()
 data_loader = DataLoader()
 data_loader.load_data(app.config['N_SEGMENTS'])
 X_client = None
 y_client = None
-client = ClientFactory.create_client(app.config, data_loader)
-client.register(app.config['N_SEGMENTS'])
-logging.info("Register Number" + str(client.register_number))
+encryption_type = app.config['ENCRYPTION_TYPE']
+encryption_service = EncryptionService(encryption_type())
+
+client = ClientFactory.create_client(app.config, data_loader, encryption_service)
+hello = client.hello()
+print(hello)
+register_client(client, app.config)
+
 
 @app.errorhandler(Exception)
 def handle_error(error):
@@ -70,25 +82,28 @@ def process_weights():
     :return:
     """
     data = request.get_json()
-    #logging.info("process_weights with {}".format(data))
     # Validate model type
     model_type = data['type']
     if not ModelType.validate(model_type):
         raise InvalidModelException(model_type)
     # encrypted_model
-    response = client.process(model_type)
-    return jsonify(response)
+    return jsonify(client.process(model_type))
 
 
 @app.route('/step', methods=['PUT'])
 def gradient_step():
+    """
+    Execute step with gradient
+    :return:
+    """
     data = request.get_json()
-    client.step(np.asarray(data["gradient"]))
+    client.step(data["gradient"])
     return jsonify(200)
 
+
 @app.route('/model', methods=['GET'])
-def getModel():
-    return jsonify(client.model.weights.tolist())
+def get_model():
+    return jsonify(client.get_model())
 
 
 @app.route('/ping', methods=['GET'])

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from exceptions.exceptions import InvalidModelException
+from client.exceptions.exceptions import InvalidModelException
 from commons.model.linear_regression import LinearRegression
 
 

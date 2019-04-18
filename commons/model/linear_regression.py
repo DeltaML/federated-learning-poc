@@ -1,8 +1,5 @@
 import numpy as np
 
-from commons.operations_utils.functions import get_encrypted_number, encrypt_vector, sum_encrypted_vectors, \
-    get_serialized_encrypted_value
-
 
 class LinearRegression:
     """Runs linear regression with local data or by gradient steps,
@@ -11,9 +8,7 @@ class LinearRegression:
     Using public key can encrypt locally computed gradients.
     """
 
-    def __init__(self, name, X, y, pubkey=None):
-        self.name = name
-        self.pubkey = pubkey
+    def __init__(self, X, y):
         self.X, self.y = X, y
         self.weights = np.zeros(X.shape[1])
 
@@ -40,19 +35,12 @@ class LinearRegression:
         """Score test data"""
         return X.dot(self.weights)
 
-    def encrypted_gradient(self):
-        """Compute and encrypt gradient."""
-        gradient = self.compute_gradient()
+    #def encrypted_gradient(self):
+    #    """Compute and encrypt gradient."""
+    #    return self.compute_gradient()
         #return gradient.tolist()
-        return encrypt_vector(self.pubkey, gradient)
-
-
-    # def process(self):
-        # encrypt_aggr
-        # encrypt_aggr = [get_encrypted_number(self.pubkey, encrypt_value['ciphertext'], encrypt_value['exponent']) for
-        #                encrypt_value in encrypted_model['values']]
-        # return [get_serialized_gradient(value) for value in self.encrypted_gradient(encrypt_aggr)]
+        #return encrypt_vector(self.pubkey, gradient)
 
     def process(self):
-        #return self.encrypted_gradient()
-        return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]
+        return self.encrypted_gradient()
+        #return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]
