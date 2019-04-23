@@ -1,6 +1,6 @@
 import uuid
 
-from client.decorators.decorators import my_decorator, encrypted_response, numpy_optimized, encrypted_request
+from client.decorators.decorators import encrypted_response, numpy_optimized, encrypted_request
 from client.service.model_service import ModelFactory
 from client.service.server_service import ServerService
 
@@ -10,9 +10,10 @@ class Client:
     def __init__(self, config, data_loader, encryption_service):
         """
         :param config:
-        :param X:
-        :param y:
+        :param data_loader:
+        :param encryption_service:
         """
+
         self.client_id = str(uuid.uuid1())
         self.client_name = "CLIENT {}".format(self.client_id)
         self.config = config
@@ -32,7 +33,7 @@ class Client:
         :return:
         """
         model = self.model if self.model else ModelFactory.get_model(model_type)(self.X, self.y)
-        return model.process()
+        return model.compute_gradient()
 
     def register(self):
         """

@@ -39,10 +39,10 @@ def create_app():
     return flask_app
 
 
-def register_client(client, config):
+def register_client(local_client, config):
     if config['REGISTRATION_ENABLE']:
-        client.register(config['N_SEGMENTS'])
-        logging.info("Register Number" + str(client.register_number))
+        local_client.register(config['N_SEGMENTS'])
+        logging.info("Register Number" + str(local_client.register_number))
 
 
 # Global variables
@@ -55,8 +55,6 @@ encryption_type = app.config['ENCRYPTION_TYPE']
 encryption_service = EncryptionService(encryption_type())
 
 client = ClientFactory.create_client(app.config, data_loader, encryption_service)
-hello = client.hello()
-print(hello)
 register_client(client, app.config)
 
 

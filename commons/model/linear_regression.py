@@ -34,13 +34,3 @@ class LinearRegression:
     def predict(self, X):
         """Score test data"""
         return X.dot(self.weights)
-
-    #def encrypted_gradient(self):
-    #    """Compute and encrypt gradient."""
-    #    return self.compute_gradient()
-        #return gradient.tolist()
-        #return encrypt_vector(self.pubkey, gradient)
-
-    def process(self):
-        return self.encrypted_gradient()
-        #return [get_serialized_encrypted_value(value) for value in self.encrypted_gradient()]

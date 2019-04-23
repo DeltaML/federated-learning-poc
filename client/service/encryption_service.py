@@ -13,5 +13,8 @@ class EncryptionService:
     def get_serialized_encrypted_value(self, value):
         return self.homomorphic_encryption.get_serialized_encrypted_value(value)
 
-    def get_serializated_collection(self, collection):
+    def get_serialized_collection(self, collection):
+        return [self.get_serialized_encrypted_value(value) for value in self.encrypt_collection(collection)]
+
+    def get_deserialized_collection(self, collection):
         return [self.get_serialized_encrypted_value(value) for value in self.encrypt_collection(collection)]

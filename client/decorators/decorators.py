@@ -7,7 +7,7 @@ def encrypted_response(f):
         client = args[0]
         result = f(*args, **kwds)
         if client.active_encryption:
-            return client.encryption_service.get_serializated_collection(result)
+            return client.encryption_service.get_serialized_collection(result)
         return result
 
     return wrapper
@@ -19,7 +19,7 @@ def encrypted_request(f):
         client = args[0]
         result = f(*args, **kwds)
         if client.active_encryption:
-            return client.encryption_service.get_serializated_collection(result)
+            return client.encryption_service.get_deserialized_collection(result)
         return result
 
     return wrapper
@@ -31,7 +31,7 @@ def numpy_optimized(f):
         client = args[0]
         result = f(*args, **kwds)
         if client.active_encryption:
-            return client.encryption_service.get_serializated_collection(result)
+            return client.encryption_service.get_serialized_collection(result)
         return result
 
     return wrapper
