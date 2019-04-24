@@ -57,7 +57,6 @@ class Client:
     def get_client_register_number(self):
         return self.register_number
 
-    @numpy_optimized
     def get_model(self):
         return self.model.weights
 

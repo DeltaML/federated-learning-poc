@@ -13,8 +13,8 @@ class HomomorphicEncryption(object):
     def get_deserialized_public_key(self, public_key):
         pass
 
-    def get_encrypted_value(self, pub_key, value):
+    def get_encrypted_number(self, pub_key, value):
         pass
 
-    def get_serialized_encrypted_value(self, value):
+    def get_serialized_encrypted_number(self, value):
         pass
