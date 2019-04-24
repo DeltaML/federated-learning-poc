@@ -4,6 +4,8 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 import requests
 
+from commons.encryption.phe_encryption import PheEncryption
+
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -22,9 +24,11 @@ dictConfig({
 
 config = {
     'server_register_url': "http://localhost:8080/async",
-    'key_length': 1024,
-    'n_iter': 40
+    'key_length': 1024
 }
+
+encryption_service = PheEncryption()
+private_key, public_key = encryption_service.generate_key_pair(config["key_length"])
 
 
 def create_app():
@@ -52,7 +56,7 @@ def register_client():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = dict(type="LINEAR_REGRESSION", call_back_endpoint="finished")
+    data = dict(type="LINEAR_REGRESSION", call_back_endpoint="finished", public_key=public_key)
     response = requests.post(config["server_register_url"], json=data)
     response.raise_for_status()
     return jsonify("init predict")

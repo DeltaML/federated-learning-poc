@@ -1,39 +1,13 @@
 import logging
 import os
-import threading
 import requests
-import asyncio
-import concurrent.futures
-from logging.config import dictConfig
 from flask import Flask, request, jsonify
+
+from client.service.encryption_service import EncryptionService
 from commons.data.data_loader import DataLoader
-from Server import Server
-from ClientInstance import ClientInstance
-from service.model_service import ModelType
-from threading import Thread
-
-
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
-
-config = {
-    'n_clients': 5,
-    'key_length': 1024,
-    'n_iter': 40
-}
+from server.service.server import Server
+from server.ClientInstance import ClientInstance
+from server.service.model_service import ModelType
 
 
 def create_app():
@@ -47,9 +21,11 @@ def create_app():
     return flask_app
 
 
-CLIENTS = []
-server = Server(config)
 app = create_app()
+encryption_type = app.config['ENCRYPTION_TYPE']
+encryption_service = EncryptionService(encryption_type())
+
+server = Server(encryption_service=encryption_service, config=app.config)
 
 
 # Single endpoints
@@ -59,7 +35,7 @@ def register_client():
     data = request.get_json()
     data["ip"], data["port"] = request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']
     logging.info("Register client with data {}".format(data))
-    new_client = ClientInstance(data, server.pubkey.n)
+    new_client = ClientInstance(data, server.public_key)
     server.register_client(new_client)
     response = {'pub_key': new_client.pub_key, 'number': len(server.clients)}
     return jsonify(response)
@@ -87,7 +63,7 @@ def train_model():
     data_loader.load_data(5)
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
-    response = server.federated_learning(model_type, data_loader.X_test, data_loader.y_test, config)
+    response = server.federated_learning(model_type, data_loader.X_test, data_loader.y_test)
     return jsonify(response)
 
 
@@ -95,20 +71,6 @@ def train_model():
 def ping():
     logging.info("Data {}".format(request.get_json()))
     return jsonify("pong")
-
-
-def async_processing(request_env, call_back_endpoint, func, *args):
-    logging.info("process_in_background...")
-    remote_host = "http://{}:{}".format(request_env['REMOTE_ADDR'], 9090)
-    call_back_url = "{}/{}".format(remote_host, call_back_endpoint)
-    logging.info("call_back_url {}".format(call_back_url))
-    result = func(*args)
-    requests.post(call_back_url, json=result)
-
-
-def process_in_background(data, data_loader):
-    args = request.environ, data["call_back_endpoint"], server.federated_learning, data['type'], data_loader.X_test, data_loader.y_test, config
-    Thread(target=async_processing, args=args).start()
 
 
 @app.route('/async', methods=['POST'])
@@ -120,7 +82,6 @@ def train_model_async():
     model_type = data['type']
     if not ModelType.validate(model_type):
         raise ValueError(model_type)  # MODIFICAR
-    data_loader = DataLoader()
-    data_loader.load_data(5)
-    process_in_background(data, data_loader)
-    return jsonify("ok"), 200
+    server.pub_key = data["public_key"]
+    server.process_in_background(request.environ['REMOTE_ADDR'], data)
+    return jsonify(200)

@@ -20,3 +20,6 @@ class PheEncryption(HomomorphicEncryption):
 
     def get_serialized_encrypted_number(self, value):
         return dict(ciphertext=str(value.ciphertext()), exponent=value.exponent)
+
+    def generate_key_pair(self, key_length):
+        return paillier.generate_paillier_keypair(n_length=key_length)

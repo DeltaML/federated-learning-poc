@@ -1,8 +1,7 @@
 class HomomorphicEncryption(object):
 
-    def __init__(self, public_key=None, private_key=None):
-        self.public_key = public_key
-        self.private_key = private_key
+    def generate_key_pair(self, key_length):
+        pass
 
     def encrypt_collection(self, public_key, collection):
         pass

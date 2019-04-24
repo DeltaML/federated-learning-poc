@@ -1,8 +1,8 @@
 import uuid
 
-from client.decorators.decorators import encrypted_response, numpy_optimized, encrypted_request
 from client.service.model_service import ModelFactory
 from client.service.server_service import ServerService
+from commons.decorators.decorators import deserialize_encrypted_data, serialize_encrypted_data
 
 
 class Client:
@@ -25,7 +25,7 @@ class Client:
         self.model = None
         self.active_encryption = config["ACTIVE_ENCRYPTION"]
 
-    @encrypted_response
+    @serialize_encrypted_data
     def process(self, model_type):
         """
         Process to run encrypted model
@@ -50,7 +50,7 @@ class Client:
     def _get_register_data(self):
         return {'id': self.client_id}
 
-    @encrypted_request
+    @deserialize_encrypted_data
     def step(self, encrypted_model):
         self.model.gradient_step(encrypted_model, self.config['eta'])
 
