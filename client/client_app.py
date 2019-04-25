@@ -86,7 +86,7 @@ def process_weights():
     if not ModelType.validate(model_type):
         raise InvalidModelException(model_type)
     # encrypted_model
-    return client.process(model_type)
+    return client.process(model_type, data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])

@@ -6,10 +6,27 @@ from commons.encryption.encryption_service import EncryptionService
 from server.service.server import Server
 from server.service.model_service import ModelType
 
+from logging.config import dictConfig
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__, instance_relative_config=True)
+    flask_app = Flask(__name__)
     # load the instance config
     # ensure the instance folder exists
     try:
