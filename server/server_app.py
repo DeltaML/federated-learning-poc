@@ -24,6 +24,7 @@ dictConfig({
     }
 })
 
+
 def create_app():
     # create and configure the app
     flask_app = Flask(__name__)
@@ -45,7 +46,7 @@ def build_encryption_service(config):
 app = create_app()
 encryption_service = build_encryption_service(app.config)
 server = Server(encryption_service=encryption_service, config=app.config)
-
+logging.info("Server running")
 
 @app.errorhandler(Exception)
 def handle_error(error):

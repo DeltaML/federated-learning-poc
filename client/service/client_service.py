@@ -1,7 +1,9 @@
 import uuid
 import logging
+import numpy as np
 from client.service.model_service import ModelFactory
 from client.service.server_connector import ServerConnector
+from commons.decorators.decorators import optimized_collection_parameter
 
 
 class Client:
@@ -32,8 +34,8 @@ class Client:
         """
         self.encryption_service.set_public_key(public_key)
         X, y = self.data_loader.get_sub_set(self.get_client_register_number())
-        model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
-        return model.compute_gradient().tolist()
+        self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
+        return self.model.compute_gradient().tolist()
 
     def register(self):
         """
@@ -47,14 +49,15 @@ class Client:
     def _get_register_data(self):
         return {'id': self.client_id}
 
+    @optimized_collection_parameter(optimization=np.asarray, active=True)
     def step(self, encrypted_model):
-        self.model.gradient_step(encrypted_model, self.config['eta'])
+        self.model.gradient_step(encrypted_model, float(self.config['ETA']))
 
     def get_client_register_number(self):
         return self.register_number
 
     def get_model(self):
-        return self.model.weights
+        return self.model.weights.tolist()
 
 
 class ClientFactory:

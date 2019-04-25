@@ -28,7 +28,7 @@ dictConfig({
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__, instance_relative_config=True)
+    flask_app = Flask(__name__)
     # load the instance config
     flask_app.config.from_pyfile('config.py')
     # ensure the instance folder exists
@@ -80,6 +80,7 @@ def process_weights():
     process weights from server
     :return:
     """
+    logging.info("Process weights")
     data = request.get_json()
     # Validate model type
     model_type = data['type']
@@ -96,12 +97,14 @@ def gradient_step(data):
     Execute step with gradient
     :return:
     """
+    logging.info("Gradient step")
     client.step(data["gradient"])
     return jsonify(200)
 
 
 @app.route('/model', methods=['GET'])
 def get_model():
+    logging.info("Get Model")
     return jsonify(client.get_model())
 
 

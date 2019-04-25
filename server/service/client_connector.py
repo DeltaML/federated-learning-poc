@@ -1,4 +1,7 @@
 import requests
+import numpy as np
+
+from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection
 
 
 class ClientConnector:
@@ -6,6 +9,7 @@ class ClientConnector:
     def __init__(self, client_port):
         self.client_port = client_port
 
+    @optimized_collection_response(optimization=np.asarray, active=True)
     def get_update_from_client(self, client, model_type, public_key):
         """
 
@@ -19,6 +23,7 @@ class ClientConnector:
         response = requests.post(url, json=payload)
         return response.json()
 
+    #@normalize_optimized_collection(active=True)
     def send_gradient(self, client, weights):
         """
 

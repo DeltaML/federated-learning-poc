@@ -45,6 +45,7 @@ def create_app():
 
 
 app = create_app()
+logging.info("Consumer running")
 
 
 # Single endpoints
@@ -60,7 +61,7 @@ def register_client():
 def predict():
     data = dict(type="LINEAR_REGRESSION",
                 call_back_endpoint="finished",
-                call_back_port=config["server_register_url"],
+                call_back_port=config["port"],
                 public_key=public_key.n)
     response = requests.post(config["server_register_url"], json=data)
     response.raise_for_status()

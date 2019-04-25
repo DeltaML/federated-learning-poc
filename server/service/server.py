@@ -55,8 +55,9 @@ class Server:
         return models
 
     def send_global_model(self, weights):
+        normalized_weights = weights.tolist()
         """Encripta y envia el nombre del modelo a ser entrenado"""
-        [self.client_connector.send_gradient(client, weights) for client in self.clients]
+        [self.client_connector.send_gradient(client, normalized_weights) for client in self.clients]
 
     def get_updates(self, model_type, public_key):
         """
