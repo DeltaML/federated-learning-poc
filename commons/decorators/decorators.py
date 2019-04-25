@@ -39,7 +39,8 @@ def optimized_collection_response(optimization, active=False):
 def normalize_optimized_collection(active=False):
     def wrap(f):
         def wrapped_normalize_optimized_collection(*args):
-            params = args.tolist() if active else args
+            # TODO: Refactor!!!
+            params = args[0], args[1], args[2].tolist() if active else args[2]
             return f(*params)
         return wrapped_normalize_optimized_collection
     return wrap

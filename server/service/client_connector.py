@@ -23,7 +23,7 @@ class ClientConnector:
         response = requests.post(url, json=payload)
         return response.json()
 
-    #@normalize_optimized_collection(active=True)
+    @normalize_optimized_collection(active=True)
     def send_gradient(self, client, weights):
         """
 
