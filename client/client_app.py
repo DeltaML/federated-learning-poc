@@ -7,7 +7,7 @@ from client.exceptions.exceptions import InvalidModelException
 from client.service.client_service import ClientFactory
 from client.service.model_service import ModelType
 from client.service.encryption_service import EncryptionService
-
+from commons.decorators.decorators import serialize_encrypted_data, deserialize_encrypted_data, hello_decorator
 
 dictConfig({
     'version': 1,
@@ -39,9 +39,10 @@ def create_app():
     return flask_app
 
 
-def register_client(local_client, config):
+def register_client(local_client, config, encryption_service):
     if config['REGISTRATION_ENABLE']:
-        local_client.register(config['N_SEGMENTS'])
+        response = local_client.register()
+        encryption_service.set_public_key(response['pub_key'])
         logging.info("Register Number" + str(local_client.register_number))
 
 
@@ -55,7 +56,7 @@ encryption_type = app.config['ENCRYPTION_TYPE']
 encryption_service = EncryptionService(encryption_type())
 
 client = ClientFactory.create_client(app.config, data_loader, encryption_service)
-register_client(client, app.config)
+register_client(client, app.config, encryption_service)
 
 
 @app.errorhandler(Exception)
@@ -74,6 +75,7 @@ def handle_error(error):
 
 
 @app.route('/weights', methods=['POST'])
+@serialize_encrypted_data(encryption_service=encryption_service, schema=jsonify)
 def process_weights():
     """
     process weights from server
@@ -85,16 +87,16 @@ def process_weights():
     if not ModelType.validate(model_type):
         raise InvalidModelException(model_type)
     # encrypted_model
-    return jsonify(client.process(model_type))
+    return client.process(model_type)
 
 
 @app.route('/step', methods=['PUT'])
-def gradient_step():
+@deserialize_encrypted_data(encryption_service=encryption_service, request=request)
+def gradient_step(data):
     """
     Execute step with gradient
     :return:
     """
-    data = request.get_json()
     client.step(data["gradient"])
     return jsonify(200)
 
@@ -107,3 +109,4 @@ def get_model():
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify(200)
+

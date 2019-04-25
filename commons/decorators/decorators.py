@@ -1,38 +1,27 @@
-from functools import wraps
-import numpy as np
+def serialize_encrypted_data(encryption_service, schema, active=False):
+    def wrap(f):
+        def wrapped_f(*args):
+            result = f(*args)
+            response = encryption_service.get_serialized_collection(result) if active else result
+            return schema(response)
+        return wrapped_f
+    return wrap
 
 
-def serialize_encrypted_data(f):
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        service = args[0]
-        result = f(*args, **kwds)
-        if service.active_encryption:
-            return service.encryption_service.get_serialized_collection(result)
-        return result
-
-    return wrapper
+def deserialize_encrypted_data(encryption_service, request, active=False):
+    def wrap(f):
+        def wrapped_f2():
+            data = request.get_json()
+            result = encryption_service.get_deserialized_collection(data) if active else data
+            return f(*result)
+        return wrapped_f2
+    return wrap
 
 
-def deserialize_encrypted_data(f):
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        service = args[0]
-        result = f(*args, **kwds)
-        if service.active_encryption:
-            return service.encryption_service.get_deserialized_collection(result)
-        return result
-
-    return wrapper
-
-
-def numpy_optimized(f):
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        service = args[0]
-        result = f(*args, **kwds)
-        if service.active_optimization:
-            return np.asarray(result)
-        return result
-
-    return wrapper
+def optimized(engine, active):
+    def wrap(f):
+        def wrapped_f3(*args):
+            result = f(*args)
+            return result
+        return wrapped_f3
+    return wrap
