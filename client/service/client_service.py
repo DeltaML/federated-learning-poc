@@ -33,7 +33,7 @@ class Client:
         self.encryption_service.set_public_key(public_key)
         X, y = self.data_loader.get_sub_set(self.get_client_register_number())
         model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
-        return model.compute_gradient().toList()
+        return model.compute_gradient().tolist()
 
     def register(self):
         """
