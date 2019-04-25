@@ -3,70 +3,78 @@ import requests
 from functools import reduce
 from threading import Thread
 
-from commons.decorators.decorators import deserialize_encrypted_data, serialize_encrypted_data
+from commons.operations_utils.functions import sum_collection
+from server.models.client_instance import ClientInstance
+from server.service.client_connector import ClientConnector
 
 
 class Server:
     def __init__(self, encryption_service, config):
         self.clients = []
         self.encryption_service = encryption_service
-        self.public_key = None
         self.config = config
+        self.client_connector = ClientConnector(self.config["CLIENT_PORT"])
+
+    def register_client(self, client_data):
+        """
+        Register new client
+        :param client_data:
+        :return:
+        """
+
+        logging.info("Register client with {}".format(client_data))
+        new_client = ClientInstance(client_data)
+        self.clients.append(new_client)
+        return {'number': len(self.clients)}
 
     @staticmethod
-    def async_processing(remote_address, call_back_endpoint, func, *args):
+    def async_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
         logging.info("process_in_background...")
-        remote_host = "http://{}:{}".format(remote_address, 9090)
+        remote_host = "http://{}:{}".format(remote_address, call_back_port)
         call_back_url = "{}/{}".format(remote_host, call_back_endpoint)
         logging.info("call_back_url {}".format(call_back_url))
         result = func(*args)
         requests.post(call_back_url, json=result)
 
     def process_in_background(self, remote_address, data):
-        args = remote_address, data["call_back_endpoint"], self.federated_learning, data['type']
-        Thread(target=self.async_processing, args=args).start()
+        Thread(target=self.async_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
-    def federated_learning(self, model_type):
+    def _build_async_processing_data(self, data, remote_address):
+        return remote_address, data["call_back_endpoint"], data["call_back_port"], self.federated_learning, data['type'], data["public_key"]
+
+    def federated_learning(self, model_type, public_key):
         logging.info("Init federated_learning")
-        n_iter = self.config['n_iter']
+        n_iter = self.config["N_ITER"]
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         models = []
         for i in range(n_iter):
-            updates = self.get_updates(model_type)
+            updates = self.get_updates(model_type, public_key)
             updates = self.federated_averaging(updates)
             self.send_global_model(updates)
             models = self.get_trained_models()
         return models
 
-    @serialize_encrypted_data
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
-        for client in self.clients:
-            url = "http://{}:{}/step".format(client.ip, self.config.CLIENT_PORT)
-            payload = {"gradient": weights}
-            requests.put(url, json=payload)
+        [self.client_connector.send_gradient(client, weights) for client in self.clients]
 
-    def register_client(self, client):
-        self.clients.append(client)
+    def get_updates(self, model_type, public_key):
+        """
 
-    @deserialize_encrypted_data
-    def _get_update_from_client(self, client, model_type):
-        url = "http://{}:{}/weights".format(client.ip, self.config.CLIENT_PORT)
-        # TODO: Refactor this
-        payload = {"type": model_type}
-        response = requests.post(url, json=payload)
-        return response.json()
-
-    def get_updates(self, model_type):
-        return [self._get_update_from_client(client, model_type) for client in self.clients]
+        :param model_type:
+        :param public_key:
+        :return:
+        """
+        return [self.client_connector.get_update_from_client(client, model_type, public_key) for client in self.clients]
 
     def federated_averaging(self, updates):
-        return reduce(self.encryption_service.sum, updates) / len(self.clients)
+        """
+        Sum all de partial updates and
+        :param updates:
+        :return:
+        """
+        return reduce(sum_collection, updates) / len(self.clients)
 
     def get_trained_models(self):
-        """Encripta y envia el nombre del modelo a ser entrenado"""
-        models = []
-        for client in self.clients:
-            url = "http://{}:{}/model".format(client.ip, self.config.CLIENT_PORT)
-            models.append(requests.get(url).json())
-        return models
+        """envia el nombre del modelo a ser entrenado"""
+        return [self.client_connector.get_client_model(client) for client in self.clients]

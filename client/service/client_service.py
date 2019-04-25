@@ -1,8 +1,7 @@
 import uuid
-
+import logging
 from client.service.model_service import ModelFactory
-from client.service.server_service import ServerService
-from commons.decorators.decorators import deserialize_encrypted_data, serialize_encrypted_data
+from client.service.server_service import ServerConnector
 
 
 class Client:
@@ -21,13 +20,17 @@ class Client:
         self.encryption_service = encryption_service
         self.register_number = None
         self.model = None
+        if config['REGISTRATION_ENABLE']:
+            self.register()
 
-    def process(self, model_type):
+    def process(self, model_type, public_key):
         """
-        Process to run encrypted model
+        Process to run model
         :param model_type:
+        :param public_key:
         :return:
         """
+        self.encryption_service.set_public_key(public_key)
         X, y = self.data_loader.get_sub_set(self.get_client_register_number())
         model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
         return model.compute_gradient()
@@ -37,9 +40,9 @@ class Client:
         Register client into federated server
         :return:
         """
-        response = ServerService(self.config).register(self._get_register_data())
+        response = ServerConnector(self.config).register(self._get_register_data())
         self.register_number = int(response['number']) - 1
-        return response
+        logging.info("Register Number" + str(self.register_number))
 
     def _get_register_data(self):
         return {'id': self.client_id}

@@ -2,12 +2,12 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from commons.data.data_loader import DataLoader
+from client.data.data_loader import DataLoader
 from client.exceptions.exceptions import InvalidModelException
 from client.service.client_service import ClientFactory
 from client.service.model_service import ModelType
-from client.service.encryption_service import EncryptionService
-from commons.decorators.decorators import serialize_encrypted_data, deserialize_encrypted_data, hello_decorator
+from commons.decorators.decorators import serialize_encrypted_data, deserialize_encrypted_data
+from commons.encryption.encryption_service import EncryptionService
 
 dictConfig({
     'version': 1,
@@ -39,24 +39,23 @@ def create_app():
     return flask_app
 
 
-def register_client(local_client, config, encryption_service):
-    if config['REGISTRATION_ENABLE']:
-        response = local_client.register()
-        encryption_service.set_public_key(response['pub_key'])
-        logging.info("Register Number" + str(local_client.register_number))
+
+def build_data_loader(config):
+    data_loader = DataLoader()
+    data_loader.load_data(config['N_SEGMENTS'])
+    return data_loader
+
+
+def build_encryption_service(config):
+    encryption_type = config['ENCRYPTION_TYPE']
+    return EncryptionService(encryption_type())
 
 
 # Global variables
 app = create_app()
-data_loader = DataLoader()
-data_loader.load_data(app.config['N_SEGMENTS'])
-X_client = None
-y_client = None
-encryption_type = app.config['ENCRYPTION_TYPE']
-encryption_service = EncryptionService(encryption_type())
-
+data_loader = build_data_loader(app.config)
+encryption_service = build_encryption_service(app.config)
 client = ClientFactory.create_client(app.config, data_loader, encryption_service)
-register_client(client, app.config, encryption_service)
 
 
 @app.errorhandler(Exception)
