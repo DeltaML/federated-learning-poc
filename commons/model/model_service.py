@@ -1,5 +1,6 @@
 from enum import Enum
 
+from commons.model.exceptions.exceptions import InvalidModelException
 from commons.model.linear_regression import LinearRegression
 
 
@@ -8,7 +9,8 @@ class ModelType(Enum):
 
     @classmethod
     def validate(cls, model_type):
-        return any(model_type == item.name for item in cls)
+        if not any(model_type == item.name for item in cls):
+            raise InvalidModelException(model_type)
 
 
 class ModelFactory:
@@ -18,4 +20,4 @@ class ModelFactory:
         if ModelType[model_type] == ModelType.LINEAR_REGRESSION:
             return LinearRegression
         else:
-            raise ValueError(model_type)
+            raise InvalidModelException(model_type)

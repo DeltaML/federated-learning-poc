@@ -22,7 +22,7 @@ pip install -r requirements.txt;
 
 ### Build image
 ```
- docker build -t federated-learning-client --rm .
+ docker build -t federated-learning-client --rm -f client/Dockerfile
 ```
 
 ### Run container

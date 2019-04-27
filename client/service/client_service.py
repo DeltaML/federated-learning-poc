@@ -1,76 +1,72 @@
 import uuid
-from commons.operations_utils.functions import get_deserialized_public_key
-from service.model_service import ModelFactory
-from service.server_service import ServerService
-
-
-config = {
-    'eta': 1.5
-}
+import logging
+import numpy as np
+from commons.model.model_service import ModelFactory
+from client.service.server_connector import ServerConnector
+from commons.decorators.decorators import optimized_collection_parameter
 
 
 class Client:
 
-    model = None
-
-    def __init__(self, config, data_loader):
+    def __init__(self, config, data_loader, encryption_service):
         """
         :param config:
-        :param X:
-        :param y:
+        :param data_loader:
+        :param encryption_service:
         """
+
         self.client_id = str(uuid.uuid1())
         self.client_name = "CLIENT {}".format(self.client_id)
         self.config = config
-        self.X = None
-        self.y = None
-        self.pubkey = None
-        self.register_number = None
         self.data_loader = data_loader
+        self.encryption_service = encryption_service
+        self.register_number = None
+        self.model = None
+        if config['REGISTRATION_ENABLE']:
+            self.register()
 
-    def _create_model(self, model_type):
-        new_model = ModelFactory.get_model(model_type)
-        return new_model(self.client_name, self.X, self.y, self.pubkey)
-
-    def process(self, model_type):
+    def process(self, model_type, public_key):
         """
-        Process to run encrypted model
+        Process to run model
         :param model_type:
-        :param encrypted_model:
+        :param public_key:
         :return:
         """
-        self.model = self.model if self.model else self._create_model(model_type)
-        return self.model.process()
+        self.encryption_service.set_public_key(public_key)
+        X, y = self.data_loader.get_sub_set(self.get_client_register_number())
+        self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
+        return self.model.compute_gradient().tolist()
 
-    def register(self, segments):
+    def register(self):
         """
         Register client into federated server
         :return:
         """
-        response = ServerService(self.config).register(self._get_register_data())
-        self.pubkey = get_deserialized_public_key(response['pub_key'])
+        response = ServerConnector(self.config).register(self._get_register_data())
         self.register_number = int(response['number']) - 1
-        self.X, self.y = self.data_loader.get_sub_set(self.get_client_segment(segments))
+        logging.info("Register Number" + str(self.register_number))
 
     def _get_register_data(self):
         return {'id': self.client_id}
 
+    @optimized_collection_parameter(optimization=np.asarray, active=True)
     def step(self, encrypted_model):
-        self.model.gradient_step(encrypted_model, config['eta'])
+        self.model.gradient_step(encrypted_model, float(self.config['ETA']))
 
-
-    def get_client_segment(self, n_segments):
+    def get_client_register_number(self):
         return self.register_number
+
+    def get_model(self):
+        return self.model.weights.tolist()
 
 
 class ClientFactory:
     @classmethod
-    def create_client(cls, name, data_loader):
+    def create_client(cls, name, data_loader, encryption_service):
         """
-        Create new client
         :param name:
-        :param X:
-        :param y:
+        :param data_loader:
+        :param encryption_service:
         :return:
         """
-        return Client(name, data_loader)
+        return Client(name, data_loader, encryption_service)

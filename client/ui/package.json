@@ -12,7 +12,7 @@
     "react-typing-animation": "^1.6.2",
     "typeface-roboto": "0.0.54"
   },
-  "proxy": "http://localhost:32790",
+  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

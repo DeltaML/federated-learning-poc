@@ -2,13 +2,12 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
+from client.service.client_service import ClientFactory
 from commons.data.data_loader import DataLoader
-from exceptions.exceptions import InvalidModelException
-from service.client_service import ClientFactory
-from service.model_service import ModelType
+from client.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
+    serialize_encrypted_model_data
+from commons.encryption.encryption_service import EncryptionService
 from flask import send_from_directory
-import numpy as np
-
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -28,7 +27,7 @@ dictConfig({
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__, static_folder='ui/build/', instance_relative_config=True)
+    flask_app = Flask(__name__, static_folder='ui/build/')
     # load the instance config
     flask_app.config.from_pyfile('config.py')
     # ensure the instance folder exists
@@ -39,22 +38,24 @@ def create_app():
     return flask_app
 
 
+def build_data_loader(config):
+    data_loader = DataLoader()
+    data_loader.load_data(config['N_SEGMENTS'])
+    return data_loader
+
+
+def build_encryption_service(config):
+    encryption_type = config['ENCRYPTION_TYPE']
+    return EncryptionService(encryption_type())
 
 
 # Global variables
 app = create_app()
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*")
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-  next()
-})
-data_loader = DataLoader()
-data_loader.load_data(app.config['N_SEGMENTS'])
-X_client = None
-y_client = None
-client = ClientFactory.create_client(app.config, data_loader)
-client.register(app.config['N_SEGMENTS'])
-logging.info("Register Number" + str(client.register_number))
+
+data_loader = build_data_loader(app.config)
+encryption_service = build_encryption_service(app.config)
+client = ClientFactory.create_client(app.config, data_loader, encryption_service)
+active_encryption = app.config["ACTIVE_ENCRYPTION"]
 
 
 # Serve React App
@@ -65,7 +66,6 @@ def serve(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
-
 
 
 @app.route('/dataset', methods=['POST'])
@@ -97,31 +97,37 @@ def handle_error(error):
 
 
 @app.route('/weights', methods=['POST'])
+@serialize_encrypted_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
 def process_weights():
     """
     process weights from server
     :return:
     """
+    logging.info("Process weights")
     data = request.get_json()
-    #logging.info("process_weights with {}".format(data))
-    # Validate model type
+    # model type
     model_type = data['type']
-    if not ModelType.validate(model_type):
-        raise InvalidModelException(model_type)
     # encrypted_model
-    response = client.process(model_type)
-    return jsonify(response)
+    return client.process(model_type, data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])
-def gradient_step():
-    data = request.get_json()
-    client.step(np.asarray(data["gradient"]))
+@deserialize_encrypted_data(encryption_service=encryption_service, request=request, active=active_encryption)
+def gradient_step(data):
+    """
+    Execute step with gradient
+    :return:
+    """
+    logging.info("Gradient step")
+    client.step(data)
     return jsonify(200)
 
+
 @app.route('/model', methods=['GET'])
-def getModel():
-    return jsonify(client.model.weights.tolist())
+@serialize_encrypted_model_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
+def get_model():
+    logging.info("Get Model")
+    return client.get_model()
 
 
 @app.route('/ping', methods=['GET'])
