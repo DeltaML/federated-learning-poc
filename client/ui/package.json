@@ -1,0 +1,41 @@
+{
+  "name": "data-owner",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@material-ui/core": "^3.9.3",
+    "@material-ui/icons": "^3.0.2",
+    "material-ui": "^0.20.2",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "2.1.8",
+    "react-typing-animation": "^1.6.2",
+    "typeface-roboto": "0.0.54"
+  },
+  "proxy": "http://localhost:32790",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "storybook": "start-storybook -p 9009 -s public",
+    "build-storybook": "build-storybook -s public"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@storybook/react": "^5.0.9",
+    "@storybook/addon-actions": "^5.0.9",
+    "@storybook/addon-links": "^5.0.9",
+    "@storybook/addons": "^5.0.9",
+    "@babel/core": "^7.4.3",
+    "babel-loader": "^8.0.5"
+  }
+}

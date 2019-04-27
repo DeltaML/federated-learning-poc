@@ -6,6 +6,7 @@ from commons.data.data_loader import DataLoader
 from exceptions.exceptions import InvalidModelException
 from service.client_service import ClientFactory
 from service.model_service import ModelType
+from flask import send_from_directory
 import numpy as np
 
 dictConfig({
@@ -27,7 +28,7 @@ dictConfig({
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__, instance_relative_config=True)
+    flask_app = Flask(__name__, static_folder='ui/build/', instance_relative_config=True)
     # load the instance config
     flask_app.config.from_pyfile('config.py')
     # ensure the instance folder exists
@@ -38,8 +39,15 @@ def create_app():
     return flask_app
 
 
+
+
 # Global variables
 app = create_app()
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  next()
+})
 data_loader = DataLoader()
 data_loader.load_data(app.config['N_SEGMENTS'])
 X_client = None
@@ -47,6 +55,31 @@ y_client = None
 client = ClientFactory.create_client(app.config, data_loader)
 client.register(app.config['N_SEGMENTS'])
 logging.info("Register Number" + str(client.register_number))
+
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+
+
+@app.route('/dataset', methods=['POST'])
+def load_dataset():
+    form = request.form
+    files =  request.files
+    logging.info(request)
+    logging.info(form)
+    logging.info(files)
+    logging.info(form.get('file'))
+    logging.info(files.get('file'))
+    return jsonify(200)
+
+
 
 @app.errorhandler(Exception)
 def handle_error(error):
