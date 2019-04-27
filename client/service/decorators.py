@@ -2,9 +2,19 @@ def serialize_encrypted_data(encryption_service, schema, active=False):
     def wrap(f):
         def wrapped_serialize_encrypted_data(*args):
             result = f(*args)
-            response = encryption_service.get_serialized_collection(result, encrypted=active) if active else result
+            response = encryption_service.get_serialized_encrypted_collection(result) if active else result
             return schema(response)
         return wrapped_serialize_encrypted_data
+    return wrap
+
+
+def serialize_encrypted_model_data(encryption_service, schema, active=False):
+    def wrap(f):
+        def wrapped_serialize_encrypted_model_data(*args):
+            result = f(*args)
+            response = encryption_service.get_serialized_collection(result) if active else result
+            return schema(response)
+        return wrapped_serialize_encrypted_model_data
     return wrap
 
 

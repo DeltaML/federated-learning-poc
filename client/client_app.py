@@ -4,7 +4,8 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from client.service.client_service import ClientFactory
 from commons.data.data_loader import DataLoader
-from client.service.decorators import serialize_encrypted_data, deserialize_encrypted_data
+from client.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
+    serialize_encrypted_model_data
 from commons.encryption.encryption_service import EncryptionService
 
 dictConfig({
@@ -99,9 +100,10 @@ def gradient_step(data):
 
 
 @app.route('/model', methods=['GET'])
+@serialize_encrypted_model_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
 def get_model():
     logging.info("Get Model")
-    return jsonify(client.get_model())
+    return client.get_model()
 
 
 @app.route('/ping', methods=['GET'])

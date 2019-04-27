@@ -17,3 +17,6 @@ class HomomorphicEncryption(object):
 
     def get_serialized_encrypted_number(self, value):
         pass
+
+    def decrypt_value(self, private_key, value):
+        pass

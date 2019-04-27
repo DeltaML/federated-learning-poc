@@ -28,11 +28,13 @@ dictConfig({
 config = {
     'server_register_url': "http://localhost:8080/model",
     'key_length': 1024,
-    'port': 9090
+    'port': 9090,
+    'active_encryption': False
 }
 
 encryption_service = EncryptionService(PheEncryption())
 public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
+encryption_service.set_public_key(public_key.n)
 
 
 def create_app():
@@ -58,8 +60,10 @@ model = ModelFactory.get_model(ModelType.LINEAR_REGRESSION.name)(X_train, y_trai
 def register_client():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
-    logging.info("DATA {}".format(data))
-    model.set_weights(data)
+    logging.info("DATA Encrypted{}".format(data))
+    d_data = encryption_service.decrypt_and_deserizalize_collection(private_key, data) if config["active_encryption"] else data
+    logging.info("DATA Dencryted{}".format(d_data))
+    model.set_weights(d_data)
     return jsonify(data), 200
 
 

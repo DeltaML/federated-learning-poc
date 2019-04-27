@@ -1,5 +1,6 @@
 import logging
 import requests
+import json
 from functools import reduce
 from threading import Thread
 
@@ -7,6 +8,7 @@ from commons.decorators.decorators import normalize_optimized_response
 from commons.operations_utils.functions import sum_collection
 from server.models.client_instance import ClientInstance
 from server.service.client_connector import ClientConnector
+from server.service.decorators import serialize_encrypted_server_data
 
 
 class Server:
@@ -14,7 +16,8 @@ class Server:
         self.clients = []
         self.encryption_service = encryption_service
         self.config = config
-        self.client_connector = ClientConnector(self.config["CLIENT_PORT"], encryption_service, self.config["ACTIVE_ENCRYPTION"])
+        self.active_encryption = self.config["ACTIVE_ENCRYPTION"]
+        self.client_connector = ClientConnector(self.config["CLIENT_PORT"], encryption_service, self.active_encryption)
 
     def register_client(self, client_data):
         """
@@ -29,7 +32,7 @@ class Server:
         return {'number': len(self.clients)}
 
     @staticmethod
-    def async_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
+    def async_server_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
         logging.info("process_in_background...")
         remote_host = "http://{}:{}".format(remote_address, call_back_port)
         call_back_url = "{}/{}".format(remote_host, call_back_endpoint)
@@ -38,10 +41,10 @@ class Server:
         requests.post(call_back_url, json=result)
 
     def process_in_background(self, remote_address, data):
-        Thread(target=self.async_processing, args=self._build_async_processing_data(data, remote_address)).start()
+        Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
-        return remote_address, data["call_back_endpoint"], data["call_back_port"], self.federated_learning, data['type'], data["public_key"]
+        return remote_address, data["call_back_endpoint"], data["call_back_port"], self.federated_learning_wrapper, data['type'], data["public_key"]
 
     @normalize_optimized_response(active=True)
     def federated_learning(self, model_type, public_key):
@@ -57,6 +60,10 @@ class Server:
             models = self.get_trained_models()
 
         return self.federated_averaging(models)
+
+    @serialize_encrypted_server_data(schema=json.dumps)
+    def federated_learning_wrapper(self, model_type, public_key):
+        return self.federated_learning(model_type, public_key)
 
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""

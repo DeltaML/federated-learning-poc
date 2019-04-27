@@ -24,22 +24,34 @@ class EncryptionService:
         """
         return self.homomorphic_encryption.encrypt_collection(self.public_key, collection)
 
-    def decrypt_collection(self, collection):
+    def decrypt_collection(self, private_key, collection):
         """
 
         :param collection:
         :return:
         """
-        return self.homomorphic_encryption.decrypt_collection(collection)
+        return self.homomorphic_encryption.decrypt_collection(private_key, collection)
 
-    def get_serialized_collection(self, collection, encrypted=False):
+
+    def decrypt_and_deserizalize_collection(self, private_key, collection):
+        return [self.homomorphic_encryption.decrypt_value(private_key, n) for n in self.get_deserialized_collection(collection)]
+
+    def get_serialized_encrypted_collection(self, collection):
         """
 
         :param collection:
         :return:
         """
-        values = self.encrypt_collection(collection) if encrypted else collection
-        return [self.get_serialized_encrypted_value(value) for value in values]
+
+        return [self.get_serialized_encrypted_value(value) for value in self.encrypt_collection(collection)]
+
+    def get_serialized_collection(self, collection):
+        """
+
+        :param collection:
+        :return:
+        """
+        return [self.get_serialized_encrypted_value(value) for value in collection]
 
     def get_deserialized_collection(self, collection):
         """
