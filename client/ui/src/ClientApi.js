@@ -25,9 +25,6 @@ function checkStatus(response) {
 function sendFile(params, res) {
     return fetch(RoutesList.file, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        },
         body: params.body
     })
         .then(checkStatus)

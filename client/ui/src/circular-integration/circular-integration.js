@@ -43,21 +43,20 @@ class CircularIntegration extends React.Component {
   };
 
   loadFile = (event) => {
-    let file = event.target.files[0];
-    if (file) {
-      let data = new FormData();
-      data.append('file', file);
-      this.setState({
-          uploadedFile: file
-      });
-      console.log(data.get('file').size);
-      //console.log(Client.getClientId())
-      Client.sendFile({ body: data}, res => {
-          if (res.statusCode !== 200) {
-              console.log("ERROR")
-          }
-      })
-    }
+      let file = event.target.files[0];
+      if (file) {
+          let data = new FormData();
+          data.append('file', file);
+          this.setState({
+              uploadedFile: file
+          });
+          console.log(data.get('file').size);
+          Client.sendFile({ body: data}, res => {
+              if (res.statusCode !== 200) {
+                  console.log("ERROR")
+              }
+          })
+      }
   };
 
   render() {

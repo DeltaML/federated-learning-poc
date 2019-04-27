@@ -43,11 +43,6 @@ def create_app():
 
 # Global variables
 app = create_app()
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*")
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-  next()
-})
 data_loader = DataLoader()
 data_loader.load_data(app.config['N_SEGMENTS'])
 X_client = None
@@ -70,13 +65,10 @@ def serve(path):
 
 @app.route('/dataset', methods=['POST'])
 def load_dataset():
-    form = request.form
-    files =  request.files
-    logging.info(request)
-    logging.info(form)
-    logging.info(files)
-    logging.info(form.get('file'))
-    logging.info(files.get('file'))
+    file =  request.files.get('file')
+    logging.info(file)
+    file.save('./dataset/data.csv')
+    file.close()
     return jsonify(200)
 
 
