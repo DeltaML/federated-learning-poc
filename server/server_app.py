@@ -48,6 +48,7 @@ encryption_service = build_encryption_service(app.config)
 server = Server(encryption_service=encryption_service, config=app.config)
 logging.info("Server running")
 
+
 @app.errorhandler(Exception)
 def handle_error(error):
     message = [str(x) for x in error.args]
@@ -75,12 +76,6 @@ def register_client():
 @app.route('/clients', methods=['GET'])
 def get_clients():
     return jsonify([str(client) for client in server.clients])
-
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    input = request.input
-    return server.predict(input)
 
 
 @app.route('/ping', methods=['POST'])

@@ -1,6 +1,5 @@
 import logging
 import requests
-import numpy as np
 from functools import reduce
 from threading import Thread
 
@@ -15,7 +14,7 @@ class Server:
         self.clients = []
         self.encryption_service = encryption_service
         self.config = config
-        self.client_connector = ClientConnector(self.config["CLIENT_PORT"])
+        self.client_connector = ClientConnector(self.config["CLIENT_PORT"], encryption_service, self.config["ACTIVE_ENCRYPTION"])
 
     def register_client(self, client_data):
         """
@@ -49,7 +48,8 @@ class Server:
         logging.info("Init federated_learning")
         n_iter = self.config["N_ITER"]
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
-        models = None
+        self.encryption_service.set_public_key(public_key)
+        models = []
         for i in range(n_iter):
             updates = self.get_updates(model_type, public_key)
             updates = self.federated_averaging(updates)

@@ -15,7 +15,7 @@ class PheEncryption(HomomorphicEncryption):
         return paillier.PaillierPublicKey(n=int(public_key))
 
     def get_encrypted_number(self, pub_key, value):
-        ciphertext, exponent = value
+        ciphertext, exponent = value["ciphertext"], value["exponent"]
         return paillier.EncryptedNumber(pub_key, int(ciphertext), int(exponent))
 
     def get_serialized_encrypted_number(self, value):

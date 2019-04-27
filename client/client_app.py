@@ -4,7 +4,7 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from client.service.client_service import ClientFactory
 from commons.data.data_loader import DataLoader
-from commons.decorators.decorators import serialize_encrypted_data, deserialize_encrypted_data
+from client.service.decorators import serialize_encrypted_data, deserialize_encrypted_data
 from commons.encryption.encryption_service import EncryptionService
 
 dictConfig({
@@ -37,7 +37,6 @@ def create_app():
     return flask_app
 
 
-
 def build_data_loader(config):
     data_loader = DataLoader()
     data_loader.load_data(config['N_SEGMENTS'])
@@ -54,6 +53,7 @@ app = create_app()
 data_loader = build_data_loader(app.config)
 encryption_service = build_encryption_service(app.config)
 client = ClientFactory.create_client(app.config, data_loader, encryption_service)
+active_encryption = app.config["ACTIVE_ENCRYPTION"]
 
 
 @app.errorhandler(Exception)
@@ -72,7 +72,7 @@ def handle_error(error):
 
 
 @app.route('/weights', methods=['POST'])
-@serialize_encrypted_data(encryption_service=encryption_service, schema=jsonify)
+@serialize_encrypted_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
 def process_weights():
     """
     process weights from server
@@ -87,14 +87,14 @@ def process_weights():
 
 
 @app.route('/step', methods=['PUT'])
-@deserialize_encrypted_data(encryption_service=encryption_service, request=request)
+@deserialize_encrypted_data(encryption_service=encryption_service, request=request, active=active_encryption)
 def gradient_step(data):
     """
     Execute step with gradient
     :return:
     """
     logging.info("Gradient step")
-    client.step(data["gradient"])
+    client.step(data)
     return jsonify(200)
 
 

@@ -32,13 +32,14 @@ class EncryptionService:
         """
         return self.homomorphic_encryption.decrypt_collection(collection)
 
-    def get_serialized_collection(self, collection):
+    def get_serialized_collection(self, collection, encrypted=False):
         """
 
         :param collection:
         :return:
         """
-        return [self.get_serialized_encrypted_value(value) for value in self.encrypt_collection(collection)]
+        values = self.encrypt_collection(collection) if encrypted else collection
+        return [self.get_serialized_encrypted_value(value) for value in values]
 
     def get_deserialized_collection(self, collection):
         """
@@ -54,7 +55,7 @@ class EncryptionService:
         :param value:
         :return:
         """
-        return self.homomorphic_encryption.get_serialized_encrypted_value(value)
+        return self.homomorphic_encryption.get_serialized_encrypted_number(value)
 
     def get_deserialized_encrypted_value(self, value):
         """
@@ -62,7 +63,7 @@ class EncryptionService:
         :param value:
         :return:
         """
-        return self.homomorphic_encryption.get_encrypted_value(self.public_key, value)
+        return self.homomorphic_encryption.get_encrypted_number(self.public_key, value)
 
     def generate_key_pair(self, key_length):
         """

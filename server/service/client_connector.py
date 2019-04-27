@@ -1,22 +1,24 @@
 import requests
 import numpy as np
-
+import json
 from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection
+from server.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_data
 from commons.utils.async_thread_pool_executor import AsyncThreadPoolExecutor
 
 
 class ClientConnector:
 
-    def __init__(self, client_port):
+    def __init__(self, client_port, encryption_service, active_encryption):
         self.client_port = client_port
         self.async_thread_pool = AsyncThreadPoolExecutor()
+        self.encryption_service = encryption_service
+        self.active_encryption = active_encryption
 
+    @deserialize_encrypted_server_data()
     def get_update_from_client(self, data):
         """
 
-        :param client:
-        :param model_type:
-        :param public_key:
+        :param data:
         :return:
         """
         client, model_type, public_key = data
@@ -25,6 +27,7 @@ class ClientConnector:
         response = requests.post(url, json=payload)
         return response.json()
 
+    @serialize_encrypted_server_data(schema=json.dumps)
     def send_gradient(self, data):
         """
         Replace with parallel
