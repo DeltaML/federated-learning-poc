@@ -1,5 +1,6 @@
 import logging
 import requests
+import numpy as np
 from functools import reduce
 from threading import Thread
 
@@ -49,6 +50,7 @@ class Server:
         models = []
         for i in range(n_iter):
             updates = self.get_updates(model_type, public_key)
+
             updates = self.federated_averaging(updates)
             self.send_global_model(updates)
             models = self.get_trained_models()
@@ -56,6 +58,7 @@ class Server:
 
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
+        logging.info("Send global models")
         self.client_connector.send_gradient_to_clients(self.clients, weights)
 
     def get_updates(self, model_type, public_key):
@@ -73,8 +76,10 @@ class Server:
         :param updates:
         :return:
         """
+        logging.info("Federated averaging")
         return reduce(sum_collection, updates) / len(self.clients)
 
     def get_trained_models(self):
         """obtiene el nombre del modelo a ser entrenado"""
+        logging.info("get_trained_models")
         return self.client_connector.get_clients_model(self.clients)

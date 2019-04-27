@@ -9,4 +9,4 @@ def mean_square_error(y_pred, y):
 def sum_collection(x, y):
     if len(x) != len(y):
         raise ValueError('Encrypted vectors must have the same size')
-    return [x[i] + y[i] for i in range(len(x))]
+    return x + y
