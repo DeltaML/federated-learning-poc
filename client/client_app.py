@@ -2,10 +2,8 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from client.data.data_loader import DataLoader
-from client.exceptions.exceptions import InvalidModelException
 from client.service.client_service import ClientFactory
-from client.service.model_service import ModelType
+from commons.data.data_loader import DataLoader
 from commons.decorators.decorators import serialize_encrypted_data, deserialize_encrypted_data
 from commons.encryption.encryption_service import EncryptionService
 
@@ -82,10 +80,8 @@ def process_weights():
     """
     logging.info("Process weights")
     data = request.get_json()
-    # Validate model type
+    # model type
     model_type = data['type']
-    if not ModelType.validate(model_type):
-        raise InvalidModelException(model_type)
     # encrypted_model
     return client.process(model_type, data["public_key"])
 

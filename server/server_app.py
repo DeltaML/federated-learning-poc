@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 
 from commons.encryption.encryption_service import EncryptionService
 from server.service.server import Server
-from server.service.model_service import ModelType
+from commons.model.model_service import ModelType
 
 from logging.config import dictConfig
 
@@ -95,8 +95,5 @@ def train_model_async():
     logging.info("Initializing async model trainig acording to request {}".format(data))
     logging.info("host {} port {}".format(request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']))
     # Validate model type
-    model_type = data['type']
-    if not ModelType.validate(model_type):
-        raise ValueError(model_type)  # MODIFICAR
     server.process_in_background(request.environ['REMOTE_ADDR'], data)
     return jsonify(200)

@@ -1,7 +1,7 @@
 import uuid
 import logging
 import numpy as np
-from client.service.model_service import ModelFactory
+from commons.model.model_service import ModelFactory
 from client.service.server_connector import ServerConnector
 from commons.decorators.decorators import optimized_collection_parameter
 

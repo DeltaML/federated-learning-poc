@@ -3,9 +3,11 @@ import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
 import requests
-
+from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
 from commons.encryption.phe_encryption import PheEncryption
+from commons.model.model_service import ModelFactory, ModelType
+from commons.operations_utils.functions import mean_square_error
 
 dictConfig({
     'version': 1,
@@ -47,6 +49,9 @@ def create_app():
 app = create_app()
 logging.info("Consumer running")
 
+X_train, y_train, X_test, y_test = DataLoader().load_random_data()
+model = ModelFactory.get_model(ModelType.LINEAR_REGRESSION.name)(X_train, y_train)
+
 
 # Single endpoints
 @app.route('/finished', methods=['POST'])
@@ -54,10 +59,11 @@ def register_client():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
     logging.info("DATA {}".format(data))
+    model.set_weights(data)
     return jsonify(data), 200
 
 
-@app.route('/predict', methods=['POST'])
+@app.route('/model', methods=['POST'])
 def predict():
     logging.info("init predict")
     data = dict(type="LINEAR_REGRESSION",
@@ -72,3 +78,10 @@ def predict():
 @app.route('/ping', methods=['POST'])
 def ping():
     return jsonify("pong")
+
+
+@app.route('/prediction', methods=['GET'])
+def get_prediction():
+    y_pred = model.predict(X_test)
+    mse = mean_square_error(y_pred, y_test)
+    return jsonify({'pred': y_pred.tolist(), 'mse': mse})

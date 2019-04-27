@@ -44,3 +44,12 @@ def normalize_optimized_collection(active=False):
             return f(*params)
         return wrapped_normalize_optimized_collection
     return wrap
+
+
+def normalize_optimized_response(active=False):
+    def wrap(f):
+        def wrapped_normalize_optimized_response(*args):
+            result = f(*args)
+            return result.tolist() if active else result
+        return wrapped_normalize_optimized_response
+    return wrap

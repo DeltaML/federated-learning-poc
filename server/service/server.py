@@ -4,6 +4,7 @@ import numpy as np
 from functools import reduce
 from threading import Thread
 
+from commons.decorators.decorators import normalize_optimized_response
 from commons.operations_utils.functions import sum_collection
 from server.models.client_instance import ClientInstance
 from server.service.client_connector import ClientConnector
@@ -43,18 +44,19 @@ class Server:
     def _build_async_processing_data(self, data, remote_address):
         return remote_address, data["call_back_endpoint"], data["call_back_port"], self.federated_learning, data['type'], data["public_key"]
 
+    @normalize_optimized_response(active=True)
     def federated_learning(self, model_type, public_key):
         logging.info("Init federated_learning")
         n_iter = self.config["N_ITER"]
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
-        models = []
+        models = None
         for i in range(n_iter):
             updates = self.get_updates(model_type, public_key)
-
             updates = self.federated_averaging(updates)
             self.send_global_model(updates)
             models = self.get_trained_models()
-        return models
+
+        return self.federated_averaging(models)
 
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""

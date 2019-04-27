@@ -34,6 +34,7 @@ class ClientConnector:
         url, payload = data
         requests.put(url, json=payload)
 
+    @optimized_collection_response(optimization=np.asarray, active=True)
     def get_clients_model(self, clients):
         args = ["http://{}:{}/model".format(client.host, self.client_port) for client in clients]
         results = self.async_thread_pool.run(executable=requests.get, args=args)
