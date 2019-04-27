@@ -59,6 +59,7 @@ def register_client():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    logging.info("init predict")
     data = dict(type="LINEAR_REGRESSION",
                 call_back_endpoint="finished",
                 call_back_port=config["port"],

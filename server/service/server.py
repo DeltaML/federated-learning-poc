@@ -56,7 +56,7 @@ class Server:
 
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
-        [self.client_connector.send_gradient(client, weights) for client in self.clients]
+        self.client_connector.send_gradient_to_clients(self.clients, weights)
 
     def get_updates(self, model_type, public_key):
         """
@@ -65,7 +65,7 @@ class Server:
         :param public_key:
         :return:
         """
-        return [self.client_connector.get_update_from_client(client, model_type, public_key) for client in self.clients]
+        return self.client_connector.get_update_from_clients(self.clients, model_type, public_key)
 
     def federated_averaging(self, updates):
         """
@@ -76,5 +76,5 @@ class Server:
         return reduce(sum_collection, updates) / len(self.clients)
 
     def get_trained_models(self):
-        """envia el nombre del modelo a ser entrenado"""
-        return [self.client_connector.get_client_model(client) for client in self.clients]
+        """obtiene el nombre del modelo a ser entrenado"""
+        return self.client_connector.get_clients_model(self.clients)
