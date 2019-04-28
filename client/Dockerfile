@@ -1,12 +1,13 @@
 FROM python:3
 
-WORKDIR /app
 
+WORKDIR /app
 RUN mkdir -p ./commons
-RUN mkdir -p ./dataset
+RUN mkdir -p ./client
+RUN mkdir -p ./client/dataset
 ADD ./commons ./commons
-ADD ./client ./
-RUN pip install -r requirements.txt
+ADD ./client ./client
+RUN pip install -r ./client/requirements.txt
 
 EXPOSE 5000
-CMD [ "gunicorn", "-b", "0.0.0.0:5000", "wsgi:app", "--timeout 600", "--graceful-timeout 600", "--preload"]
+CMD [ "gunicorn", "-b", "0.0.0.0:5000", "wsgi:app", "--chdir", "client/", "--preload"]

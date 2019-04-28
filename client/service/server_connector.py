@@ -2,7 +2,7 @@ import requests
 import logging
 
 
-class ServerService:
+class ServerConnector:
 
     def __init__(self, config):
         self.server_host = config['SERVER_HOST']
