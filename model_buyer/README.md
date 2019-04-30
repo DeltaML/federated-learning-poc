@@ -1,5 +1,20 @@
 # Federated learning - Model Buyer
 
+
+## Installing
+
+A step by step series of examples that tell you how to get a development env running
+
+Say what the step will be
+
+```
+git clone git@github.com:DeltaML/federated-learning-poc.git
+cd federated-learning-poc/model_buyer/
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## Run
 
 ### Using command line
