@@ -12,20 +12,6 @@ These instructions will get you a copy of the project up and running on your loc
 
 [python3](https://www.python.org/download/releases/3.0/)
 
-
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
-
-```
-git clone git@github.com:DeltaML/federated-learning-poc.git
-cd federated-learning-poc/
-python3 -m venv venv
-source venvenv/bin/activate
-pip install -r requirements.txt
-```
 ## Usage
 
 Run federated system with _N_DATA_OWNERS_
