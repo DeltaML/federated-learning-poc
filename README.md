@@ -26,8 +26,29 @@ python3 -m venv venv
 source venvenv/bin/activate
 pip install -r requirements.txt
 ```
+## Usage
 
-## Running the tests
+Run federated system with N_DATA_OWNERSs
+```
+docker-compose up --scale cte_client=<N_DATA_OWNERS>
+```
+Check configuration in both applications
+
+**Federated Trainer Configuration**
+
+You can see the federated trainer configuration in [Federated Trainer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/server/README.md)
+
+**Data owner Configuration**
+
+You can see the Data owner configuration in [Data owner Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/client/README.md)
+
+**Model buyer Configuration**
+
+You can see the Model buyer configuration in [Model buyer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/consumer/README.md)
+
+### 
+
+### Running the tests
 
 Run thes using
 ```
@@ -71,6 +92,7 @@ docker-compose up --scale cte_client=<N_CLIENTS>
 	Script Path: .../client/virtualenv/bin/gunicorn
 	Parameters: -b "0.0.0.0:5000" wsgi:app --preload
 	Working directory: ../client
+
 
 ## Contributing
 
