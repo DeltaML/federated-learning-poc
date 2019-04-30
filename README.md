@@ -11,6 +11,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 
 [python3](https://www.python.org/download/releases/3.0/)
+[docker](https://www.docker.com/)
+[docker-compose](https://docs.docker.com/compose/)
 
 ## Usage
 
@@ -22,15 +24,15 @@ Check configuration in both applications
 
 **Federated Trainer Configuration**
 
-You can see the federated trainer configuration in [Federated Trainer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/federated_trainer/README.md)
+You can see the federated trainer Readme in [Federated Trainer](https://github.com/DeltaML/federated-learning-poc/blob/master/federated_trainer/README.md)
 
 **Data owner Configuration**
 
-You can see the Data owner configuration in [Data owner Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/data_owner/README.md)
+You can see the Data owner Readme in [Data owner](https://github.com/DeltaML/federated-learning-poc/blob/master/data_owner/README.md)
 
 **Model buyer Configuration**
 
-You can see the Model buyer configuration in [Model buyer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/model_buyer/README.md)
+You can see the Model buyer Readme in [Model buyer](https://github.com/DeltaML/federated-learning-poc/blob/master/model_buyer/README.md)
 
 ### Run Model buyer
 
