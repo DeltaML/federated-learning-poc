@@ -14,38 +14,18 @@ These instructions will get you a copy of the project up and running on your loc
 [docker](https://www.docker.com/)
 [docker-compose](https://docs.docker.com/compose/)
 
-## Usage
 
-Run federated system with _N_DATA_OWNERS_
-```
-docker-compose up --scale cte_client=<N_DATA_OWNERS>
-```
-Check configuration in both applications
-
-**Federated Trainer Configuration**
+**Federated Trainer usage and configuration**
 
 You can see the federated trainer Readme in [Federated Trainer](https://github.com/DeltaML/federated-learning-poc/blob/master/federated_trainer/README.md)
 
-**Data owner Configuration**
+**Data owner usage and configuration**
 
 You can see the Data owner Readme in [Data owner](https://github.com/DeltaML/federated-learning-poc/blob/master/data_owner/README.md)
 
-**Model buyer Configuration**
+**Model buyer usage and configuration**
 
 You can see the Model buyer Readme in [Model buyer](https://github.com/DeltaML/federated-learning-poc/blob/master/model_buyer/README.md)
-
-### Run Model buyer
-
-``` bash
-gunicorn -b "0.0.0.0:9090" --chdir consumer/ wsgi:app --preload
-```
-
-### Running the tests
-
-Run thes using
-```
-notests test
-```
 
 ## Deployment
 
