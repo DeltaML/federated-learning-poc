@@ -36,15 +36,15 @@ Check configuration in both applications
 
 **Federated Trainer Configuration**
 
-You can see the federated trainer configuration in [Federated Trainer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/server/README.md)
+You can see the federated trainer configuration in [Federated Trainer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/federated_trainer/README.md)
 
 **Data owner Configuration**
 
-You can see the Data owner configuration in [Data owner Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/client/README.md)
+You can see the Data owner configuration in [Data owner Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/data_owner/README.md)
 
 **Model buyer Configuration**
 
-You can see the Model buyer configuration in [Model buyer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/consumer/README.md)
+You can see the Model buyer configuration in [Model buyer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/model_buyer/README.md)
 
 ### Run Model buyer
 
@@ -73,34 +73,34 @@ Then run
 docker-compose up
 ```
 
-Run and scale clients
+Run and scale data owners
 ```
-docker-compose up --scale cte_client=<N_CLIENTS>
+docker-compose up --scale cte_data_owner=<N_DATA_OWNERS>
 ```
 
 ## Using Pycharm
 
-### Consumer
-	Script Path: .../consumer/virtualenv/bin/gunicorn
+### Model Buyer
+	Script Path: .../model_buyer/virtualenv/bin/gunicorn
 	Parameters: -b "0.0.0.0:9090" wsgi:app --preload
-	Working directory: ../consumer
+	Working directory: ../model_buyer
 
 
-### Server
-	Script Path: .../server/virtualenv/bin/gunicorn
+### Federated Trainer
+	Script Path: .../federated_trainer/virtualenv/bin/gunicorn
 	Parameters: -b "0.0.0.0:8080" wsgi:app --preload
-	Working directory: ../server
+	Working directory: ../federated_trainer
 
 
-### Client
-	Script Path: .../client/virtualenv/bin/gunicorn
+### Data Owner
+	Script Path: .../data_owner/virtualenv/bin/gunicorn
 	Parameters: -b "0.0.0.0:5000" wsgi:app --preload
-	Working directory: ../client
+	Working directory: ../data_owner
 
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/DeltaML/federated-learning-poc/graphs/contributors) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Versioning
 
@@ -111,7 +111,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 * **Fabrizio Graffe** - *Dev* - [GFibrizo](https://github.com/GFibrizo)
 * **Agustin Rojas** - *Dev* - [agrojas](https://github.com/agrojas)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/DeltaML/federated-learning-poc/graphs/contributors) who participated in this project.
 
 ## License
 

@@ -6,30 +6,30 @@ from threading import Thread
 
 from commons.decorators.decorators import normalize_optimized_response
 from commons.operations_utils.functions import sum_collection
-from server.models.client_instance import ClientInstance
-from server.service.client_connector import ClientConnector
-from server.service.decorators import serialize_encrypted_server_data
+from federated_trainer.models.data_owner_instance import DataOwnerInstance
+from federated_trainer.service.data_owner_connector import DataOwnerConnector
+from federated_trainer.service.decorators import serialize_encrypted_server_data
 
 
-class Server:
+class FederatedTrainer:
     def __init__(self, encryption_service, config):
-        self.clients = []
+        self.data_owners = []
         self.encryption_service = encryption_service
         self.config = config
         self.active_encryption = self.config["ACTIVE_ENCRYPTION"]
-        self.client_connector = ClientConnector(self.config["CLIENT_PORT"], encryption_service, self.active_encryption)
+        self.data_owner_connector = DataOwnerConnector(self.config["DATA_OWNER_PORT"], encryption_service, self.active_encryption)
 
-    def register_client(self, client_data):
+    def register_data_owner(self, data_owner_data):
         """
-        Register new client
-        :param client_data:
+        Register new data_owner
+        :param data_owner_data:
         :return:
         """
 
-        logging.info("Register client with {}".format(client_data))
-        new_client = ClientInstance(client_data)
-        self.clients.append(new_client)
-        return {'number': len(self.clients)}
+        logging.info("Register data owner with {}".format(data_owner_data))
+        new_data_owner = DataOwnerInstance(data_owner_data)
+        self.data_owners.append(new_data_owner)
+        return {'number': len(self.data_owners)}
 
     @staticmethod
     def async_server_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
@@ -68,7 +68,7 @@ class Server:
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
         logging.info("Send global models")
-        self.client_connector.send_gradient_to_clients(self.clients, weights)
+        self.data_owner_connector.send_gradient_to_data_owners(self.data_owners, weights)
 
     def get_updates(self, model_type, public_key):
         """
@@ -77,7 +77,7 @@ class Server:
         :param public_key:
         :return:
         """
-        return self.client_connector.get_update_from_clients(self.clients, model_type, public_key)
+        return self.data_owner_connector.get_update_from_data_owners(self.data_owners, model_type, public_key)
 
     def federated_averaging(self, updates):
         """
@@ -86,9 +86,9 @@ class Server:
         :return:
         """
         logging.info("Federated averaging")
-        return reduce(sum_collection, updates) / len(self.clients)
+        return reduce(sum_collection, updates) / len(self.data_owners)
 
     def get_trained_models(self):
         """obtiene el nombre del modelo a ser entrenado"""
         logging.info("get_trained_models")
-        return self.client_connector.get_clients_model(self.clients)
+        return self.data_owner_connector.get_data_owners_model(self.data_owners)

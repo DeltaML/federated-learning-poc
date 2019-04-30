@@ -1,12 +1,14 @@
-import uuid
 import logging
+import uuid
+
 import numpy as np
-from commons.model.model_service import ModelFactory
-from client.service.server_connector import ServerConnector
+
 from commons.decorators.decorators import optimized_collection_parameter
+from commons.model.model_service import ModelFactory
+from data_owner.service.federated_trainer_connector import FederatedTrainerConnector
 
 
-class Client:
+class DataOwner:
 
     def __init__(self, config, data_loader, encryption_service):
         """
@@ -16,7 +18,7 @@ class Client:
         """
 
         self.client_id = str(uuid.uuid1())
-        self.client_name = "CLIENT {}".format(self.client_id)
+        self.client_name = "data_owner {}".format(self.client_id)
         self.config = config
         self.data_loader = data_loader
         self.encryption_service = encryption_service
@@ -33,7 +35,7 @@ class Client:
         :return:
         """
         self.encryption_service.set_public_key(public_key)
-        X, y = self.data_loader.get_sub_set(self.get_client_register_number())
+        X, y = self.data_loader.get_sub_set(self.get_data_owner_register_number())
         self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
         return self.model.compute_gradient().tolist()
 
@@ -42,7 +44,7 @@ class Client:
         Register client into federated server
         :return:
         """
-        response = ServerConnector(self.config).register(self._get_register_data())
+        response = FederatedTrainerConnector(self.config).register(self._get_register_data())
         self.register_number = int(response['number']) - 1
         logging.info("Register Number" + str(self.register_number))
 
@@ -53,20 +55,20 @@ class Client:
     def step(self, encrypted_model):
         self.model.gradient_step(encrypted_model, float(self.config['ETA']))
 
-    def get_client_register_number(self):
+    def get_data_owner_register_number(self):
         return self.register_number
 
     def get_model(self):
         return self.model.weights.tolist()
 
 
-class ClientFactory:
+class DataOwnerFactory:
     @classmethod
-    def create_client(cls, name, data_loader, encryption_service):
+    def create_data_owner(cls, name, data_loader, encryption_service):
         """
         :param name:
         :param data_loader:
         :param encryption_service:
         :return:
         """
-        return Client(name, data_loader, encryption_service)
+        return DataOwner(name, data_loader, encryption_service)

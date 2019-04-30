@@ -1,8 +1,9 @@
 import logging
 import os
+import requests
+
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-import requests
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
 from commons.encryption.phe_encryption import PheEncryption
@@ -29,10 +30,11 @@ config = {
     'server_register_url': "http://localhost:8080/model",
     'key_length': 1024,
     'port': 9090,
-    'active_encryption': False
+    'active_encryption': False,
+    'encryption_type': PheEncryption
 }
 
-encryption_service = EncryptionService(PheEncryption())
+encryption_service = EncryptionService(config["encryption_type"]())
 public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
 encryption_service.set_public_key(public_key.n)
 
@@ -57,7 +59,7 @@ model = ModelFactory.get_model(ModelType.LINEAR_REGRESSION.name)(X_train, y_trai
 
 # Single endpoints
 @app.route('/finished', methods=['POST'])
-def register_client():
+def finished():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
     logging.info("DATA Encrypted{}".format(data))

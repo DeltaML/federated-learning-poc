@@ -2,9 +2,9 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from client.service.client_service import ClientFactory
+from data_owner.service.data_owner_service import DataOwnerFactory
 from commons.data.data_loader import DataLoader
-from client.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
+from data_owner.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
     serialize_encrypted_model_data
 from commons.encryption.encryption_service import EncryptionService
 
@@ -53,7 +53,7 @@ def build_encryption_service(config):
 app = create_app()
 data_loader = build_data_loader(app.config)
 encryption_service = build_encryption_service(app.config)
-client = ClientFactory.create_client(app.config, data_loader, encryption_service)
+data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
 
 
@@ -84,7 +84,7 @@ def process_weights():
     # model type
     model_type = data['type']
     # encrypted_model
-    return client.process(model_type, data["public_key"])
+    return data_owner.process(model_type, data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])
@@ -95,7 +95,7 @@ def gradient_step(data):
     :return:
     """
     logging.info("Gradient step")
-    client.step(data)
+    data_owner.step(data)
     return jsonify(200)
 
 
@@ -103,7 +103,7 @@ def gradient_step(data):
 @serialize_encrypted_model_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
 def get_model():
     logging.info("Get Model")
-    return client.get_model()
+    return data_owner.get_model()
 
 
 @app.route('/ping', methods=['GET'])

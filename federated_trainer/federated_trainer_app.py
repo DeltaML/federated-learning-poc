@@ -3,8 +3,7 @@ import os
 from flask import Flask, request, jsonify
 
 from commons.encryption.encryption_service import EncryptionService
-from server.service.server import Server
-from commons.model.model_service import ModelType
+from federated_trainer.service.federated_trainer import FederatedTrainer
 
 from logging.config import dictConfig
 
@@ -45,8 +44,8 @@ def build_encryption_service(config):
 
 app = create_app()
 encryption_service = build_encryption_service(app.config)
-server = Server(encryption_service=encryption_service, config=app.config)
-logging.info("Server running")
+federated_trainer = FederatedTrainer(encryption_service=encryption_service, config=app.config)
+logging.info("federated_trainer running")
 
 
 @app.errorhandler(Exception)
@@ -64,18 +63,18 @@ def handle_error(error):
     return jsonify(response), status_code
 
 
-@app.route('/clients/register', methods=['POST'])
-def register_client():
+@app.route('/dataowner', methods=['POST'])
+def register_data_owner():
     # Json contiene url y puerto a donde esta el cliente que se esta logueando
     data = request.get_json()
     data["host"], data["port"] = request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']
-    response = server.register_client(data)
+    response = federated_trainer.register_data_owner(data)
     return jsonify(response)
 
 
-@app.route('/clients', methods=['GET'])
-def get_clients():
-    return jsonify([str(client) for client in server.clients])
+@app.route('/dataowner', methods=['GET'])
+def get_data_owners():
+    return jsonify([str(data_owner) for data_owner in federated_trainer.data_owners])
 
 
 @app.route('/ping', methods=['POST'])
@@ -90,5 +89,5 @@ def train_model_async():
     logging.info("Initializing async model trainig acording to request {}".format(data))
     logging.info("host {} port {}".format(request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']))
     # Validate model type
-    server.process_in_background(request.environ['REMOTE_ADDR'], data)
+    federated_trainer.process_in_background(request.environ['REMOTE_ADDR'], data)
     return jsonify(200)

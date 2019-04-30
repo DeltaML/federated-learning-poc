@@ -1,4 +1,4 @@
-class ClientInstance(object):
+class DataOwnerInstance(object):
     def __init__(self, data):
         self.id = data["id"]
         self.host = data["host"]

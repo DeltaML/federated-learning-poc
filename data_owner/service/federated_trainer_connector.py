@@ -2,10 +2,10 @@ import requests
 import logging
 
 
-class ServerConnector:
+class FederatedTrainerConnector:
 
     def __init__(self, config):
-        self.server_host = config['SERVER_HOST']
+        self.federated_trainer_host = config['FEDERATED_TRAINER_HOST']
 
     def register(self, client_data):
         """
@@ -13,7 +13,7 @@ class ServerConnector:
         :param client_data:
         :return:
         """
-        server_register_url = self.server_host + "/clients/register"
+        server_register_url = self.federated_trainer_host + "/dataowner"
         logging.info("Register client {} to server {}".format(client_data, server_register_url))
         response = requests.post(server_register_url, json=client_data)
         response.raise_for_status()

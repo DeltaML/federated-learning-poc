@@ -1,5 +1,5 @@
 from logging.config import dictConfig
-from client.client_app import app
+from data_owner.data_owner_app import app
 
 if __name__ == "__main__":
     dictConfig({
