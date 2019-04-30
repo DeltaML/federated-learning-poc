@@ -28,7 +28,7 @@ pip install -r requirements.txt
 ```
 ## Usage
 
-Run federated system with N_DATA_OWNERSs
+Run federated system with _N_DATA_OWNERS_
 ```
 docker-compose up --scale cte_client=<N_DATA_OWNERS>
 ```
@@ -46,7 +46,11 @@ You can see the Data owner configuration in [Data owner Configuration](https://g
 
 You can see the Model buyer configuration in [Model buyer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/consumer/README.md)
 
-### 
+### Run Model buyer
+
+``` bash
+gunicorn -b "0.0.0.0:9090" --chdir consumer/ wsgi:app --preload
+```
 
 ### Running the tests
 
