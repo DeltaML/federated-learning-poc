@@ -6,7 +6,6 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
-from commons.encryption.phe_encryption import PheEncryption
 from commons.model.model_service import ModelFactory, ModelType
 from commons.operations_utils.functions import mean_square_error
 
@@ -30,11 +29,10 @@ config = {
     'server_register_url': "http://localhost:8080/model",
     'key_length': 1024,
     'port': 9090,
-    'active_encryption': False,
-    'encryption_type': PheEncryption
+    'active_encryption': False
 }
 
-encryption_service = EncryptionService(config["encryption_type"]())
+encryption_service = EncryptionService()
 public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
 encryption_service.set_public_key(public_key.n)
 

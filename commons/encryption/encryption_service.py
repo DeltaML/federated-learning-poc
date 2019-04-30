@@ -1,6 +1,9 @@
+from commons.encryption.config import ENCRYPTION_TYPE
+
+
 class EncryptionService:
 
-    def __init__(self, homomorphic_encryption):
+    def __init__(self, homomorphic_encryption=ENCRYPTION_TYPE):
         """
 
         :param homomorphic_encryption:
