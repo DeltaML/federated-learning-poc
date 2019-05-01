@@ -62,8 +62,6 @@ curl -v -H "Content-Type: application/json" -X POST -d '{"type": "LINEAR_REGRESS
 ## Model buyer configuration
 
 ``` python3
-
-ENCRYPTION_TYPE = PheEncryption
 ACTIVE_ENCRYPTION = False
 N_ITER = 100 # El numero de iteraciones aceptables utilizando PheEncryption por ahora es 4
 DATA_OWNER_PORT = 5000
