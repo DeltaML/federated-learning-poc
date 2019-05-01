@@ -45,15 +45,10 @@ def build_data_loader(config):
     return data_loader
 
 
-def build_encryption_service(config):
-    encryption_type = config['ENCRYPTION_TYPE']
-    return EncryptionService(encryption_type())
-
-
 # Global variables
 app = create_app()
 data_loader = build_data_loader(app.config)
-encryption_service = build_encryption_service(app.config)
+encryption_service = EncryptionService()
 data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
 

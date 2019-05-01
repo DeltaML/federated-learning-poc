@@ -37,13 +37,8 @@ def create_app():
     return flask_app
 
 
-def build_encryption_service(config):
-    encryption_type = config['ENCRYPTION_TYPE']
-    return EncryptionService(encryption_type())
-
-
 app = create_app()
-encryption_service = build_encryption_service(app.config)
+encryption_service = EncryptionService()
 federated_trainer = FederatedTrainer(encryption_service=encryption_service, config=app.config)
 logging.info("federated_trainer running")
 
