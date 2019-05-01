@@ -8,7 +8,7 @@ class EncryptionService:
 
         :param homomorphic_encryption:
         """
-        self.homomorphic_encryption = homomorphic_encryption
+        self.homomorphic_encryption = homomorphic_encryption()
         self.public_key = None
 
     def set_public_key(self, public_key):
@@ -86,4 +86,4 @@ class EncryptionService:
         :param key_length:
         :return:
         """
-        return self.homomorphic_encryption.generate_key_pair(key_length)
+        return self.homomorphic_encryption.generate_key_pair(key_length=key_length)
