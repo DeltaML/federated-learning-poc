@@ -23,8 +23,6 @@ class LinearRegression:
 
     def gradient_step(self, gradient, eta=0.01):
         """Update the model with the given gradient"""
-        print("GRADIENT \n" + str(gradient))
-        print("WEIGHTS \n" + str(self.weights))
         self.weights = self.weights - (eta * gradient)
 
     def compute_gradient(self):
