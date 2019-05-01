@@ -9,10 +9,10 @@ Say what the step will be
 
 ```
 git clone git@github.com:DeltaML/federated-learning-poc.git
-cd federated-learning-poc/federated_trainer/
+cd federated-learning-poc/
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r federated_trainer/requirements.txt
 ```
 
 ## Run
@@ -69,8 +69,6 @@ DATA_OWNER_PORT = 5000
 ```
 
 ### Configuration details
-
-- ENCRYPTION_TYPE: __TODO__
 - ACTIVE_ENCRYPTION: __TODO__
 - N_ITER: __TODO__
 - DATA_OWNER_PORT: __TODO__
