@@ -2,6 +2,7 @@ import logging
 
 import numpy as np
 from sklearn.datasets import load_diabetes
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
 class DataLoader:
@@ -13,8 +14,11 @@ class DataLoader:
 
     def load_data(self):
         dataset = pd.read_csv("./dataset/data.csv", sep='\t')
-        X = {0: np.asarray(dataset[dataset.columns[:-1]].values.tolist())}
-        y = {0: np.asarray(dataset[dataset.columns[-1]].values.tolist())}
+        scaler = StandardScaler()
+        df_X = dataset[dataset.columns[:-1]]
+        df_y = dataset[dataset.columns[-1]]
+        X = {0: scaler.fit_transform(df_X)}
+        y = {0: np.asarray(df_y.values.tolist())}
         self.X = X
         self.y = y
 
