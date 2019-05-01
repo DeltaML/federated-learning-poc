@@ -4,3 +4,4 @@ gunicorn
 phe
 numpy
 sklearn
+pandas
