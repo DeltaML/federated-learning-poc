@@ -8,6 +8,7 @@ from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
 from commons.model.model_service import ModelFactory, ModelType
 from commons.operations_utils.functions import mean_square_error
+from model_buyer.config import config
 
 dictConfig({
     'version': 1,
@@ -25,12 +26,6 @@ dictConfig({
     }
 })
 
-config = {
-    'server_register_url': "http://localhost:8080/model",
-    'key_length': 1024,
-    'port': 9090,
-    'active_encryption': False
-}
 
 encryption_service = EncryptionService()
 public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
@@ -39,7 +34,7 @@ encryption_service.set_public_key(public_key.n)
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__, instance_relative_config=True)
+    flask_app = Flask(__name__)
     # ensure the instance folder exists
     try:
         os.makedirs(flask_app.instance_path)
