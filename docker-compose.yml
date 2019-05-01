@@ -15,6 +15,7 @@ services:
       dockerfile: './data_owner/Dockerfile'
     ports:
      - "5000"
+     - "3000"
     networks:
       - backend
     depends_on:
