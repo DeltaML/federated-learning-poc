@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from sklearn.datasets import load_diabetes
-
+import pandas as pd
 
 class DataLoader:
 
@@ -11,7 +11,14 @@ class DataLoader:
         self.seed = 43
         np.random.seed(self.seed)
 
-    def load_data(self, n_subsets):
+    def load_data(self):
+        dataset = pd.read_csv("./dataset/data.csv", sep='\t')
+        X = {0: np.asarray(dataset[dataset.columns[:-1]].values.tolist())}
+        y = {0: np.asarray(dataset[dataset.columns[-1]].values.tolist())}
+        self.X = X
+        self.y = y
+
+    def load_data1(self, n_subsets):
         """
         Import the dataset via sklearn, shuffle and split train/test.
         Return training, target lists for `n_clients` and a holdout test set
@@ -39,14 +46,14 @@ class DataLoader:
         # Split train among multiple clients.
         # The selection is not at random. We simulate the fact that each client
         # sees a potentially very different sample of patients.
-        X, y = [], []
+        X, y = {}, {}
         step = int(X_train.shape[0] / n_subsets)
         for c in range(n_subsets):
-            X.append(X_train[step * c: step * (c + 1), :])
-            y.append(y_train[step * c: step * (c + 1)])
+            X[c] = X_train[step * c: step * (c + 1), :]
+            y[c] = y_train[step * c: step * (c + 1)]
         self.X, self.y, self.X_test, self.y_test = X, y, X_test, y_test
 
-    def get_sub_set(self, sub_set_id):
+    def get_sub_set(self, sub_set_id=0):
         return self.X[sub_set_id], self.y[sub_set_id]
 
 

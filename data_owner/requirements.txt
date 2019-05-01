@@ -4,3 +4,4 @@ flask
 phe
 requests
 gunicorn
+pandas
