@@ -14,8 +14,23 @@ class DataOwnerConnector:
         self.encryption_service = encryption_service
         self.active_encryption = active_encryption
 
+    def send_gradient_to_data_owners(self, data_owners, weights):
+        args = [self._build_data(data_owner, weights) for data_owner in data_owners]
+        self.async_thread_pool.run(executable=self._send_gradient, args=args)
+
+    @optimized_collection_response(optimization=np.asarray, active=True)
+    def get_update_from_data_owners(self, data_owners, model_type, public_key):
+        args = [(data_owner, model_type, public_key) for data_owner in data_owners]
+        return self.async_thread_pool.run(executable=self._get_update_from_data_owner, args=args)
+
+    @optimized_collection_response(optimization=np.asarray, active=True)
+    def get_data_owners_model(self, data_owners):
+        args = ["http://{}:{}/model".format(data_owner.host, self.data_owner_port) for data_owner in data_owners]
+        results = self.async_thread_pool.run(executable=self._get_data_owner_model, args=args)
+        return [result for result in results]
+
     @deserialize_encrypted_server_data()
-    def get_update_from_data_owner(self, data):
+    def _get_update_from_data_owner(self, data):
         """
 
         :param data:
@@ -28,7 +43,7 @@ class DataOwnerConnector:
         return response.json()
 
     @serialize_encrypted_server_gradient(schema=json.dumps)
-    def send_gradient(self, data):
+    def _send_gradient(self, data):
         """
         Replace with parallel
         :param data:
@@ -38,26 +53,10 @@ class DataOwnerConnector:
         requests.put(url, json=payload)
 
     @deserialize_encrypted_server_data()
-    def get_data_owner_model(self, url):
+    def _get_data_owner_model(self, url):
         return requests.get(url).json()
-
-    @optimized_collection_response(optimization=np.asarray, active=True)
-    def get_data_owners_model(self, data_owners):
-        args = ["http://{}:{}/model".format(data_owner.host, self.data_owner_port) for data_owner in data_owners]
-        results = self.async_thread_pool.run(executable=self.get_data_owner_model, args=args)
-        return [result for result in results]
 
     # ---
     @normalize_optimized_collection(active=True)
     def _build_data(self, data_owner, weights):
         return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": weights}
-
-    def send_gradient_to_data_owners(self, data_owners, weights):
-        args = [self._build_data(data_owner, weights) for data_owner in data_owners]
-        self.async_thread_pool.run(executable=self.send_gradient, args=args)
-
-    @optimized_collection_response(optimization=np.asarray, active=True)
-    def get_update_from_data_owners(self, data_owners, model_type, public_key):
-        args = [(data_owner, model_type, public_key) for data_owner in data_owners]
-        return self.async_thread_pool.run(executable=self.get_update_from_data_owner, args=args)
-
