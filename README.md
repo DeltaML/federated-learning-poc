@@ -10,9 +10,9 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 
-[python3](https://www.python.org/download/releases/3.0/)
-[docker](https://www.docker.com/)
-[docker-compose](https://docs.docker.com/compose/)
+- [python3](https://www.python.org/download/releases/3.0/)
+- [docker](https://www.docker.com/)
+- [docker-compose](https://docs.docker.com/compose/)
 
 
 **Federated Trainer usage and configuration**
