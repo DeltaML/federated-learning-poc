@@ -57,7 +57,7 @@ curl -v -H "Content-Type: application/json" -X POST -d '{"type": "LINEAR_REGRESS
 
 
 
-## Model buyer configuration
+## Configuration
 
 ``` python3
 ACTIVE_ENCRYPTION = False
