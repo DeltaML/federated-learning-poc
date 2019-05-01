@@ -7,8 +7,8 @@ from commons.data.data_loader import DataLoader
 from data_owner.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
     serialize_encrypted_model_data
 from commons.encryption.encryption_service import EncryptionService
-from flask import send_from_directory
 
+from flask import send_from_directory
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -47,6 +47,7 @@ def build_data_loader(config):
 
 # Global variables
 app = create_app()
+
 data_loader = build_data_loader(app.config)
 encryption_service = EncryptionService()
 data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
@@ -124,4 +125,3 @@ def get_model():
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify(200)
-

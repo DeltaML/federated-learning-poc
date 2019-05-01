@@ -40,7 +40,7 @@ class FederatedTrainer:
         result = func(*args)
         requests.post(call_back_url, json=result)
 
-    def process_in_background(self, remote_address, data):
+    def process(self, remote_address, data):
         Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
