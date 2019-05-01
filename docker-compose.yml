@@ -24,7 +24,7 @@ services:
       context: ./
       dockerfile: './model_buyer/Dockerfile'
     ports:
-     - "9090"
+     - "9090:9090"
     networks:
       - backend
 networks:
