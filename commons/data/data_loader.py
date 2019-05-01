@@ -5,6 +5,7 @@ from sklearn.datasets import load_diabetes
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
+
 class DataLoader:
 
     def __init__(self):
@@ -14,10 +15,11 @@ class DataLoader:
 
     def load_data(self):
         dataset = pd.read_csv("./dataset/data.csv", sep='\t')
-        scaler = StandardScaler()
         df_X = dataset[dataset.columns[:-1]]
+        # Add constant to emulate intercept
+        df_X[len(dataset.columns)] = 1
         df_y = dataset[dataset.columns[-1]]
-        X = {0: scaler.fit_transform(df_X)}
+        X = {0: np.asarray(df_X.values.tolist())}
         y = {0: np.asarray(df_y.values.tolist())}
         self.X = X
         self.y = y
@@ -59,7 +61,6 @@ class DataLoader:
 
     def get_sub_set(self, sub_set_id=0):
         return self.X[sub_set_id], self.y[sub_set_id]
-
 
     def load_random_data(self):
         logging.info("Loading data")

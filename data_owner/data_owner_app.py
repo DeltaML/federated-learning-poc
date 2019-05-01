@@ -41,7 +41,7 @@ def create_app():
 
 def build_data_loader(config):
     data_loader = DataLoader()
-    #data_loader.load_data() #config['N_SEGMENTS'])
+    data_loader.load_data()
     return data_loader
 
 

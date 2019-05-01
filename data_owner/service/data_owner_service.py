@@ -35,7 +35,6 @@ class DataOwner:
         :return:
         """
         self.encryption_service.set_public_key(public_key)
-        self.data_loader.load_data()
         X, y = self.data_loader.get_sub_set(self.get_data_owner_register_number())
         logging.info(str(X))
         logging.info(str(y))
