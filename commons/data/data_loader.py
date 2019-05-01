@@ -19,12 +19,10 @@ class DataLoader:
         # Add constant to emulate intercept
         df_X[len(dataset.columns)] = 1
         df_y = dataset[dataset.columns[-1]]
-        X = {0: np.asarray(df_X.values.tolist())}
-        y = {0: np.asarray(df_y.values.tolist())}
-        self.X = X
-        self.y = y
+        self.X = np.asarray(df_X.values.tolist())
+        self.y = np.asarray(df_y.values.tolist())
 
-    def load_data1(self, n_subsets):
+    def load_data_deprecated(self, n_subsets):
         """
         Import the dataset via sklearn, shuffle and split train/test.
         Return training, target lists for `n_clients` and a holdout test set
@@ -59,10 +57,11 @@ class DataLoader:
             y[c] = y_train[step * c: step * (c + 1)]
         self.X, self.y, self.X_test, self.y_test = X, y, X_test, y_test
 
-    def get_sub_set(self, sub_set_id=0):
-        return self.X[sub_set_id], self.y[sub_set_id]
+    def get_sub_set(self):
+        return self.X, self.y
 
-    def load_random_data(self):
+    @staticmethod
+    def load_random_data():
         logging.info("Loading data")
         diabetes = load_diabetes()
         y = diabetes.target
