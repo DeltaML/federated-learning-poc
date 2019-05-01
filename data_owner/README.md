@@ -3,16 +3,14 @@
 
 ## Installing
 
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+A step by step series that tell you how to get a development env running
 
 ```
 git clone git@github.com:DeltaML/federated-learning-poc.git
-cd federated-learning-poc/data_owner/
+cd federated-learning-poc/
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r data_owner/requirements.txt
 ```
 
 ## Run
@@ -80,6 +78,5 @@ ACTIVE_ENCRYPTION = False
 - N_SEGMENTS: __TODO__
 - FEDERATED_TRAINER_HOST: __TODO__
 - ETA: __TODO__
-- ENCRYPTION_TYPE: __TODO__
 - REGISTRATION_ENABLE: __TODO__
 - ACTIVE_ENCRYPTION: __TODO__

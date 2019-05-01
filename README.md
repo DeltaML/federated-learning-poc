@@ -65,11 +65,6 @@ docker-compose up --scale cte_data_owner=<N_DATA_OWNERS>
 	Parameters: -b "0.0.0.0:5000" wsgi:app --preload
 	Working directory: ../data_owner
 
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://github.com/DeltaML/federated-learning-poc/graphs/contributors) for details on our code of conduct, and the process for submitting pull requests to us.
-
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/DeltaML/federated-learning-poc/tags). 
