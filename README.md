@@ -11,53 +11,21 @@ These instructions will get you a copy of the project up and running on your loc
 
 
 [python3](https://www.python.org/download/releases/3.0/)
+[docker](https://www.docker.com/)
+[docker-compose](https://docs.docker.com/compose/)
 
 
-### Installing
+**Federated Trainer usage and configuration**
 
-A step by step series of examples that tell you how to get a development env running
+You can see the federated trainer Readme in [Federated Trainer](https://github.com/DeltaML/federated-learning-poc/blob/master/federated_trainer/README.md)
 
-Say what the step will be
+**Data owner usage and configuration**
 
-```
-git clone git@github.com:DeltaML/federated-learning-poc.git
-cd federated-learning-poc/
-python3 -m venv venv
-source venvenv/bin/activate
-pip install -r requirements.txt
-```
-## Usage
+You can see the Data owner Readme in [Data owner](https://github.com/DeltaML/federated-learning-poc/blob/master/data_owner/README.md)
 
-Run federated system with _N_DATA_OWNERS_
-```
-docker-compose up --scale cte_client=<N_DATA_OWNERS>
-```
-Check configuration in both applications
+**Model buyer usage and configuration**
 
-**Federated Trainer Configuration**
-
-You can see the federated trainer configuration in [Federated Trainer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/federated_trainer/README.md)
-
-**Data owner Configuration**
-
-You can see the Data owner configuration in [Data owner Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/data_owner/README.md)
-
-**Model buyer Configuration**
-
-You can see the Model buyer configuration in [Model buyer Configuration](https://github.com/DeltaML/federated-learning-poc/blob/master/model_buyer/README.md)
-
-### Run Model buyer
-
-``` bash
-gunicorn -b "0.0.0.0:9090" --chdir consumer/ wsgi:app --preload
-```
-
-### Running the tests
-
-Run thes using
-```
-notests test
-```
+You can see the Model buyer Readme in [Model buyer](https://github.com/DeltaML/federated-learning-poc/blob/master/model_buyer/README.md)
 
 ## Deployment
 
