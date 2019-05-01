@@ -37,6 +37,8 @@ class DataOwner:
         self.encryption_service.set_public_key(public_key)
         self.data_loader.load_data()
         X, y = self.data_loader.get_sub_set(self.get_data_owner_register_number())
+        logging.info(str(X))
+        logging.info(str(y))
         self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
         return self.model.compute_gradient().tolist()
 
