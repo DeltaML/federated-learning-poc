@@ -63,7 +63,7 @@ def finished():
 
 
 @app.route('/model', methods=['POST'])
-def predict():
+def make_model():
     logging.info("init predict")
     data = dict(type="LINEAR_REGRESSION",
                 call_back_endpoint="finished",

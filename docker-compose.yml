@@ -3,7 +3,7 @@ services:
   cte_federated_trainer:
     build:
       context: ./
-      dockerfile: './server/Dockerfile'
+      dockerfile: './federated_trainer/Dockerfile'
     container_name: cte_federated_trainer
     ports:
        - "8080:8080"
@@ -12,7 +12,7 @@ services:
   cte_data_owner:
     build:
       context: ./
-      dockerfile: './client/Dockerfile'
+      dockerfile: './data_owner/Dockerfile'
     ports:
      - "5000"
     networks:
