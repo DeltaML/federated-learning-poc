@@ -41,7 +41,7 @@ curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model
 ### Get prediction
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/predict"
+curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/prediction"
 ```
 
 
@@ -51,11 +51,10 @@ curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/predic
 ``` python3
 
 config = {
-    'server_register_url': "http://localhost:8080/model",
+    'server_register_url': "http://cte_federated_trainer:8080/model",
     'key_length': 1024,
     'port': 9090,
-    'active_encryption': False,
-    'encryption_type': PheEncryption
+    'active_encryption': False
 }
 ```
 
@@ -65,4 +64,3 @@ config = {
 - key_length: __TODO__
 - port: __TODO__
 - active_encryption: __TODO__
-- encryption_type: __TODO__

@@ -19,5 +19,13 @@ services:
       - backend
     depends_on:
       - cte_federated_trainer
+  cte_model_buyer:
+    build:
+      context: ./
+      dockerfile: './model_buyer/Dockerfile'
+    ports:
+     - "9090:9090"
+    networks:
+      - backend
 networks:
   backend:
