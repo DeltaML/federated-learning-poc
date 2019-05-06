@@ -32,19 +32,20 @@ class FederatedTrainer:
         return {'number': len(self.data_owners)}
 
     @staticmethod
-    def async_server_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
+    def async_server_processing(remote_address, call_back_port, model_id, func, *args):
         logging.info("process_in_background...")
-        remote_host = "http://{}:{}".format(remote_address, call_back_port)
-        call_back_url = "{}/{}".format(remote_host, call_back_endpoint)
-        logging.info("call_back_url {}".format(call_back_url))
         result = func(*args)
+        # TODO: refactor to config
+        model_id = None
+        call_back_url = "http://{}:{}/{}/{}".format(remote_address, call_back_port, "model",model_id)
+        logging.info("call_back_url {}".format(call_back_url))
         requests.post(call_back_url, json=result)
 
     def process(self, remote_address, data):
         Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
-        return remote_address, data["call_back_endpoint"], data["call_back_port"], self.federated_learning_wrapper, data['type'], data["public_key"]
+        return remote_address, data["call_back_port"], data['model_id'], self.federated_learning_wrapper, data['type'], data["public_key"]
 
     @normalize_optimized_response(active=True)
     def federated_learning(self, model_type, public_key):

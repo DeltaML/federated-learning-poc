@@ -1,19 +1,13 @@
-import numpy as np
+from commons.model.DetalModel import DeltaModel
+from commons.model.prediction import Prediction
+from commons.operations_utils.functions import mean_square_error
 
 
-class LinearRegression:
+class LinearRegression(DeltaModel):
     """Runs linear regression with local data or by gradient steps,
     where gradient can be passed in.
 
-    Using public key can encrypt locally computed gradients.
     """
-
-    def __init__(self, X, y):
-        self.X, self.y = X, y
-        self.weights = np.zeros(X.shape[1])
-
-    def set_weights(self, weights):
-        self.weights = weights
 
     def fit(self, n_iter, eta=0.01):
         """Linear regression for n_iter"""
@@ -31,6 +25,8 @@ class LinearRegression:
         delta = self.predict(self.X) - self.y
         return delta.dot(self.X) / len(self.X)
 
-    def predict(self, X):
+    def predict(self, X, y_test=None):
         """Score test data"""
-        return X.dot(self.weights)
+        values = X.dot(self.weights)
+        mse = mean_square_error(values, y_test) if y_test else None
+        return Prediction(values=values, mse=mse)
