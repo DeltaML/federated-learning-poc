@@ -28,6 +28,7 @@ def build_data_loader():
     data_loader.load_data()
     return data_loader
 
+
 app = create_app()
 
 logging.info("Model Buyer is running")
@@ -38,6 +39,20 @@ encryption_service.set_public_key(public_key.n)
 data_loader = build_data_loader()
 model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
 
+
+## TODO: Refactor
+def get_serialized_model(model):
+    return {"requirements": model.requirements,
+            "model": {"id": model.id,
+                      "status": model.status.name,
+                      "type": model.model_type,
+                      "weights": model.get_weights()
+                      }
+            }
+
+
+def get_serialized_prediction(prediction):
+    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse}
 
 @app.errorhandler(Exception)
 def handle_error(error):
@@ -76,29 +91,33 @@ def partial_update_model(model_id):
     return jsonify(data), 200
 
 
+@app.route('/model', methods=['GET'])
+def get_models():
+    return jsonify([get_serialized_model(model) for model in model_buyer.models]), 200
+
+
 @app.route('/model/<model_id>', methods=['GET'])
 def get_model(model_id):
     model = model_buyer.get_model(model_id)
-    return jsonify({"requirements": model.requirements,
-                    "model": {"id": model.id,
-                              "status": model.status.name,
-                              "type": model.model_type,
-                              "weights": model.get_weights()
-                              }
-                    }), 200
+    return jsonify(get_serialized_model(model)), 200
 
 
 @app.route('/prediction', methods=['POST'])
 def make_prediction():
     data = request.get_json()
     prediction = model_buyer.make_prediction(data)
-    return jsonify({"values": prediction.get_values(), "mse": prediction.mse}), 200
+    return jsonify(get_serialized_prediction(prediction)), 200
+
+
+@app.route('/prediction', methods=['GET'])
+def get_predictions():
+    return jsonify([get_serialized_prediction(prediction) for prediction in model_buyer.predictions]), 200
 
 
 @app.route('/prediction/<prediction_id>', methods=['GET'])
 def get_prediction(prediction_id):
     prediction = model_buyer.get_prediction(prediction_id)
-    return jsonify({"values": prediction.get_values(), "mse": prediction.mse}), 200
+    return jsonify(get_serialized_prediction(prediction)), 200
 
 
 @app.route('/dataset', methods=['POST'])
