@@ -9,11 +9,12 @@ from model_buyer.model.ordered_model import OrderedModel, OrderedModelStatus
 
 
 class ModelBuyer:
-    def __init__(self, public_key, private_key, encryption_service, config):
+    def __init__(self, public_key, private_key, encryption_service, data_loader, config):
         self.id = str(uuid.uuid1())
         self.public_key = public_key
         self.private_key = private_key
         self.encryption_service = encryption_service
+        self.data_loader = data_loader
         self.config = config
         # TODO: refactor this to DB
         self.models = set()
@@ -78,8 +79,8 @@ class ModelBuyer:
         if not model:
             raise OrderedModelNotFoundException(model_id)
 
-        X_train, y_train, X_test, y_test = DataLoader().load_random_data()
-        prediction = model.predict(X_train, y_test)
+        x_test, y_test = self.data_loader.get_sub_set()
+        prediction = model.predict(x_test, y_test)
         self.predictions.add(prediction)
         return prediction
 

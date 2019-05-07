@@ -4,6 +4,7 @@ from logging.config import dictConfig
 
 from flask import Flask, request, jsonify
 
+from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
 from model_buyer.config import config, logging_config
 from model_buyer.service.model_buyer import ModelBuyer
@@ -22,13 +23,20 @@ def create_app():
     return flask_app
 
 
+def build_data_loader():
+    data_loader = DataLoader()
+    data_loader.load_data()
+    return data_loader
+
 app = create_app()
+
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
 public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
 encryption_service.set_public_key(public_key.n)
-model_buyer = ModelBuyer(public_key, private_key, encryption_service, config)
+data_loader = build_data_loader()
+model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
 
 
 @app.errorhandler(Exception)
@@ -84,13 +92,22 @@ def get_model(model_id):
 def make_prediction():
     data = request.get_json()
     prediction = model_buyer.make_prediction(data)
-    return jsonify(prediction), 200
+    return jsonify({"values": prediction.get_values(), "mse": prediction.mse}), 200
 
 
 @app.route('/prediction/<prediction_id>', methods=['GET'])
 def get_prediction(prediction_id):
     prediction = model_buyer.get_prediction(prediction_id)
-    return jsonify(prediction), 200
+    return jsonify({"values": prediction.get_values(), "mse": prediction.mse}), 200
+
+
+@app.route('/dataset', methods=['POST'])
+def load_dataset():
+    file = request.files.get('file')
+    logging.info(file)
+    file.save('./dataset/data.csv')
+    file.close()
+    return jsonify(200)
 
 
 @app.route('/ping', methods=['POST'])

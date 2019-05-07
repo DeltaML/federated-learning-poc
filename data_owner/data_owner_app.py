@@ -39,7 +39,7 @@ def create_app():
     return flask_app
 
 
-def build_data_loader(config):
+def build_data_loader():
     data_loader = DataLoader()
     data_loader.load_data()
     return data_loader
@@ -48,7 +48,7 @@ def build_data_loader(config):
 # Global variables
 app = create_app()
 
-data_loader = build_data_loader(app.config)
+data_loader = build_data_loader()
 encryption_service = EncryptionService()
 data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
