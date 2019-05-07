@@ -32,7 +32,7 @@ pip install -r model_buyer/requirements.txt
 
 ## Usage 
  
-### Get model from federated trainer
+### Make model from federated trainer
 
 ``` bash
 curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model"

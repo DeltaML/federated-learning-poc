@@ -1,4 +1,4 @@
-from commons.model.DetalModel import DeltaModel
+from commons.model.delta_model import DeltaModel
 from commons.model.prediction import Prediction
 from commons.operations_utils.functions import mean_square_error
 
@@ -22,11 +22,12 @@ class LinearRegression(DeltaModel):
     def compute_gradient(self):
         """Compute the gradient of the current model using the training set
         """
-        delta = self.predict(self.X) - self.y
+        prediction = self.predict(self.X)
+        delta = prediction.values - self.y
         return delta.dot(self.X) / len(self.X)
 
     def predict(self, X, y_test=None):
         """Score test data"""
         values = X.dot(self.weights)
-        mse = mean_square_error(values, y_test) if y_test else None
+        mse = mean_square_error(values, y_test) if y_test is not None else None
         return Prediction(values=values, mse=mse)

@@ -1,0 +1,45 @@
+{
+  "model_type": "LINEAR_REGRESSION",
+  "data_requirements": {
+    "features": {
+      "list": [
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f5",
+        "f6",
+        "f7",
+        "f8",
+        "f9",
+        "s6"
+      ],
+      "range": [
+        -2,
+        2
+      ],
+      "pre_processing": [
+        {
+          "method": "standard",
+          "parameters": "mean"
+        }
+      ],
+      "desc": {
+        "age": "age of the patient",
+        "sex": "sex of the patient",
+        "bmi": "body mass index of the patient",
+        "bp": "average blood pressure of the patient",
+        "s1 to s6": "Six blood serum measurements obtained for each patient"
+      }
+    },
+    "target": {
+      "range": [
+        25,
+        346
+      ],
+      "desc": [
+        "A quantitative measure of disease progression one year after baseline."
+      ]
+    }
+  }
+}

@@ -1,27 +1,14 @@
 import logging
 import os
-
 from logging.config import dictConfig
+
 from flask import Flask, request, jsonify
+
 from commons.encryption.encryption_service import EncryptionService
-from model_buyer.config import config
+from model_buyer.config import config, logging_config
 from model_buyer.service.model_buyer import ModelBuyer
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
+dictConfig(logging_config)
 
 
 def create_app():
@@ -70,13 +57,27 @@ def make_order_model():
 @app.route('/model/<model_id>', methods=['PUT'])
 def update_model(model_id):
     data = request.get_json()
+    model_buyer.finish_model(model_id, data)
+    return jsonify(data), 200
+
+
+@app.route('/model/<model_id>', methods=['PATCH'])
+def partial_update_model(model_id):
+    data = request.get_json()
     model_buyer.update_model(model_id, data)
     return jsonify(data), 200
 
 
 @app.route('/model/<model_id>', methods=['GET'])
 def get_model(model_id):
-    return jsonify(model_buyer.get_model(model_id)), 200
+    model = model_buyer.get_model(model_id)
+    return jsonify({"requirements": model.requirements,
+                    "model": {"id": model.id,
+                              "status": model.status.name,
+                              "type": model.model_type,
+                              "weights": model.get_weights()
+                              }
+                    }), 200
 
 
 @app.route('/prediction', methods=['POST'])
@@ -86,13 +87,12 @@ def make_prediction():
     return jsonify(prediction), 200
 
 
-@app.route('/prediction/<predition_id>', methods=['GET'])
-def make_prediction(predition_id):
-    prediction = model_buyer.get_prediction(predition_id)
+@app.route('/prediction/<prediction_id>', methods=['GET'])
+def get_prediction(prediction_id):
+    prediction = model_buyer.get_prediction(prediction_id)
     return jsonify(prediction), 200
 
 
 @app.route('/ping', methods=['POST'])
 def ping():
     return jsonify("pong")
-
