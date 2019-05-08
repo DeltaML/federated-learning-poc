@@ -31,12 +31,11 @@ class DataOwner:
     def process(self, model_type, public_key):
         """
         Process to run model
-        :param model_type:
+        :param requirements:
         :param public_key:
         :return:
         """
         self.encryption_service.set_public_key(public_key)
-        #X, y = self.data_loader.get_sub_set(self.get_data_owner_register_number())
         X, y = self.data_loader.get_sub_set()
         self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
         return self.model.compute_gradient().tolist()

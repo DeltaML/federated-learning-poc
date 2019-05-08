@@ -43,7 +43,7 @@ class DataOwnerConnector:
         """
         data_owner, model_type, public_key = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
-        payload = {"type": model_type, "public_key": public_key}
+        payload = {"model_type": model_type, "public_key": public_key}
         response = requests.post(url, json=payload)
         return response.json()
 

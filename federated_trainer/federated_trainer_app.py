@@ -72,17 +72,18 @@ def get_data_owners():
     return jsonify([str(data_owner) for data_owner in federated_trainer.data_owners])
 
 
-@app.route('/ping', methods=['POST'])
-def ping():
-    logging.info("Data {}".format(request.get_json()))
-    return jsonify("pong")
-
-
 @app.route('/model', methods=['POST'])
 def train_model_async():
     data = request.get_json()
     logging.info("Initializing async model trainig acording to request {}".format(data))
     logging.info("host {} port {}".format(request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']))
     # Validate model type
+    print(data)
     federated_trainer.process(request.environ['REMOTE_ADDR'], data)
     return jsonify(200)
+
+
+@app.route('/ping', methods=['POST'])
+def ping():
+    logging.info("Data {}".format(request.get_json()))
+    return jsonify("pong")
