@@ -24,6 +24,7 @@ class DataOwner:
         self.encryption_service = encryption_service
         self.register_number = None
         self.model = None
+        self.trainings = {}
         if config['REGISTRATION_ENABLE']:
             self.register()
 
@@ -62,6 +63,13 @@ class DataOwner:
     def get_model(self):
         return self.model.weights.tolist()
 
+    def link_dataset_to_trainig_request(self, training_request_id, requeriments):
+        filename = self.data_loader.get_dataset_for_training(requeriments)
+        self.trainings[training_request_id] = filename
+        self.data_loader.load_data(filename)
+        a = 10
+        print(a)
+        return filename
 
 class DataOwnerFactory:
     @classmethod

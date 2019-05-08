@@ -46,9 +46,9 @@ def create_app():
 app = create_app()
 logging.info("Consumer running")
 
-X_train, y_train, X_test, y_test = DataLoader().load_random_data()
+X_train, y_train, X_test, y_test = DataLoader(config["DATASETS_DIR"]).load_random_data()
 model = ModelFactory.get_model(ModelType.LINEAR_REGRESSION.name)(X_train, y_train)
-
+model_training_id = []
 
 # Single endpoints
 @app.route('/finished', methods=['POST'])
@@ -65,10 +65,36 @@ def finished():
 @app.route('/model', methods=['POST'])
 def make_model():
     logging.info("init predict")
+    reqs = {
+        'features': {
+            'list': ['age', 'sex', 'bmi', 'bp', 's1', 's2', 's3', 's4', 's5', 's6'],
+            'range': [-.2, .2],
+            'preprocessing': [
+                {
+                    'method': 'standard',  # scaled, normalized
+                    'parameters': 'mean'  # min, max, none
+                }
+            ],
+            'desc': {
+                'age': 'age of the patient',
+                'sex': 'sex of the patient',
+                'bmi': 'body mass index of the patient',
+                'bp': 'average blood pressure of the patient',
+                's1 to s6': 'Six blood serum measurements obtained for each patient'
+            }
+        },
+        'target': {
+            'range': [25, 346],
+            'desc': ['A quantitative measure of disease progression one year after baseline.']
+        },
+    }
     data = dict(type="LINEAR_REGRESSION",
                 call_back_endpoint="finished",
                 call_back_port=config["port"],
-                public_key=public_key.n)
+                public_key=public_key.n,
+                requeriments=reqs,
+                training_request_id=len(model_training_id))
+    model_training_id.append(1)
     response = requests.post(config["server_register_url"], json=data)
     response.raise_for_status()
     return jsonify("init predict")

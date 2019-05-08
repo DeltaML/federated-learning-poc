@@ -40,8 +40,7 @@ def create_app():
 
 
 def build_data_loader(config):
-    data_loader = DataLoader()
-    data_loader.load_data()
+    data_loader = DataLoader(config["DATASETS_DIR"])
     return data_loader
 
 
@@ -67,8 +66,9 @@ def serve(path):
 @app.route('/dataset', methods=['POST'])
 def load_dataset():
     file = request.files.get('file')
+    filename = request.files.get('filename') or file.filename
     logging.info(file)
-    file.save('./dataset/data.csv')
+    file.save('./dataset/{}'.format(filename))
     file.close()
     return jsonify(200)
 
@@ -124,4 +124,14 @@ def get_model():
 
 @app.route('/ping', methods=['GET'])
 def ping():
+    return jsonify(200)
+
+
+@app.route('/data/requeriments', methods=['POST'])
+def link_reqs_to_file():
+    data = request.get_json()
+    training_req_id = data['training_request_id']
+    reqs = data['requeriments']
+    a = data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
+    print(a)
     return jsonify(200)
