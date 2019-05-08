@@ -2,7 +2,7 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from data_owner.service.data_owner_service import DataOwnerFactory
+from data_owner.service.data_owner import DataOwnerFactory
 from commons.data.data_loader import DataLoader
 from data_owner.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
     serialize_encrypted_model_data
@@ -39,7 +39,7 @@ def create_app():
     return flask_app
 
 
-def build_data_loader(config):
+def build_data_loader():
     data_loader = DataLoader()
     data_loader.load_data()
     return data_loader
@@ -48,7 +48,7 @@ def build_data_loader(config):
 # Global variables
 app = create_app()
 
-data_loader = build_data_loader(app.config)
+data_loader = build_data_loader()
 encryption_service = EncryptionService()
 data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
@@ -98,9 +98,9 @@ def process_weights():
     logging.info("Process weights")
     data = request.get_json()
     # model type
-    model_type = data['type']
+    requirements = data['requirements']
     # encrypted_model
-    return data_owner.process(model_type, data["public_key"])
+    return data_owner.process(requirements, data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])

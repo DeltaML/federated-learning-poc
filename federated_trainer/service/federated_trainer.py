@@ -9,6 +9,7 @@ from commons.operations_utils.functions import sum_collection
 from federated_trainer.models.data_owner_instance import DataOwnerInstance
 from federated_trainer.service.data_owner_connector import DataOwnerConnector
 from federated_trainer.service.decorators import serialize_encrypted_server_data
+from federated_trainer.service.model_buyer_connector import ModelBuyerConnector
 
 
 class FederatedTrainer:
@@ -18,6 +19,7 @@ class FederatedTrainer:
         self.config = config
         self.active_encryption = self.config["ACTIVE_ENCRYPTION"]
         self.data_owner_connector = DataOwnerConnector(self.config["DATA_OWNER_PORT"], encryption_service, self.active_encryption)
+        self.model_buyer_connector = ModelBuyerConnector(self.config["MODEL_BUYER_PORT"])
 
     def register_data_owner(self, data_owner_data):
         """
@@ -31,53 +33,51 @@ class FederatedTrainer:
         self.data_owners.append(new_data_owner)
         return {'number': len(self.data_owners)}
 
-    @staticmethod
-    def async_server_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
+    def async_server_processing(self, remote_address, model_id, func, *args):
         logging.info("process_in_background...")
-        remote_host = "http://{}:{}".format(remote_address, call_back_port)
-        call_back_url = "{}/{}".format(remote_host, call_back_endpoint)
-        logging.info("call_back_url {}".format(call_back_url))
+        self.model_buyer_connector.set_remote_buyer_data(remote_address, model_id)
         result = func(*args)
-        requests.post(call_back_url, json=result)
+        self.model_buyer_connector.send_result(result)
 
     def process(self, remote_address, data):
         Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
-        return remote_address, data["call_back_endpoint"], data["call_back_port"], self.federated_learning_wrapper, data['type'], data["public_key"]
+        return remote_address, data['model_id'], self.federated_learning_wrapper, data['requirements'], data["public_key"]
 
     @normalize_optimized_response(active=True)
-    def federated_learning(self, model_type, public_key):
+    def federated_learning(self, requirements, public_key):
         logging.info("Init federated_learning")
-        n_iter = self.config["N_ITER"]
+        n_iter = self.config["MAX_ITERATIONS"]
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         self.encryption_service.set_public_key(public_key)
         models = []
         for i in range(n_iter):
-            updates = self.get_updates(model_type, public_key)
+            updates = self.get_updates(requirements, public_key)
             updates = self.federated_averaging(updates)
             self.send_global_model(updates)
             models = self.get_trained_models()
+            self.model_buyer_connector.send_partial_result(self.federated_averaging(models))
 
         return self.federated_averaging(models)
 
     @serialize_encrypted_server_data(schema=json.dumps)
-    def federated_learning_wrapper(self, model_type, public_key):
-        return self.federated_learning(model_type, public_key)
+    def federated_learning_wrapper(self, requirements, public_key):
+        return self.federated_learning(requirements, public_key)
 
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
         logging.info("Send global models")
         self.data_owner_connector.send_gradient_to_data_owners(self.data_owners, weights)
 
-    def get_updates(self, model_type, public_key):
+    def get_updates(self, requirements, public_key):
         """
 
         :param model_type:
         :param public_key:
         :return:
         """
-        return self.data_owner_connector.get_update_from_data_owners(self.data_owners, model_type, public_key)
+        return self.data_owner_connector.get_update_from_data_owners(self.data_owners, requirements, public_key)
 
     def federated_averaging(self, updates):
         """
