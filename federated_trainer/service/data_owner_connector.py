@@ -29,6 +29,11 @@ class DataOwnerConnector:
         results = self.async_thread_pool.run(executable=self._get_data_owner_model, args=args)
         return [result for result in results]
 
+    def send_requirements_to_data_owners(self, data_owners, data):
+        for data_owner in data_owners:
+            url = "http://{}:{}/data/requeriments".format(data_owner.host, self.data_owner_port)
+            requests.post(url, json=data, timeout=None)
+
     @deserialize_encrypted_server_data()
     def _get_update_from_data_owner(self, data):
         """

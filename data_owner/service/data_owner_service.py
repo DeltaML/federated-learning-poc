@@ -67,8 +67,6 @@ class DataOwner:
         filename = self.data_loader.get_dataset_for_training(requeriments)
         self.trainings[training_request_id] = filename
         self.data_loader.load_data(filename)
-        a = 10
-        print(a)
         return filename
 
 class DataOwnerFactory:

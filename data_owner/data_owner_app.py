@@ -132,6 +132,5 @@ def link_reqs_to_file():
     data = request.get_json()
     training_req_id = data['training_request_id']
     reqs = data['requeriments']
-    a = data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
-    print(a)
+    data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
     return jsonify(200)

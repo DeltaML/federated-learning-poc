@@ -104,7 +104,7 @@ class DataLoader:
         :return: the name of the file that complies with the requested requirements.
         """
         files = [fname for fname in os.listdir(self.dataset_path)]
-        features = requeriments['features']['list']
+        features = list(map(lambda x: x.lower(), requeriments['features']['list']))
         feat_range = requeriments['features']['range']
         target_range = requeriments['target']['range']
         for file in files:
@@ -113,7 +113,8 @@ class DataLoader:
                 columns = dataset.columns.tolist()
                 feature_values = dataset[columns[:-1]]
                 target_values = dataset[columns[-1]]
-                if set(columns[:-1]) != set(features):
+                lowercase_cols = list(map(lambda x: x.lower(), columns[:-1]))
+                if set(lowercase_cols) != set(features):
                     continue
                 if feature_values.max().max() > feat_range[1]:
                     continue
@@ -123,6 +124,7 @@ class DataLoader:
                     continue
                 if target_values.min() < target_range[0]:
                     continue
-            except:
+            except Exception as e:
+                print(e)
                 continue
             return file

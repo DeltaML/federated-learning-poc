@@ -33,9 +33,7 @@ class FederatedTrainer:
         return {'number': len(self.data_owners)}
 
     def send_requirements_to_data_owner(self, data):
-        #for data_owner in self.data_owners:
-        requests.post("http://localhost:5000/data/requeriments", json=data, timeout=None) #.format(data_owner.host, data_owner.port), requirements)
-        time.sleep(1000)
+        self.data_owner_connector.send_requirements_to_data_owners(self.data_owners, data)
 
     @staticmethod
     def async_server_processing(remote_address, call_back_endpoint, call_back_port, func, *args):
