@@ -78,7 +78,6 @@ def train_model_async():
     logging.info("Initializing async model trainig acording to request {}".format(data))
     logging.info("host {} port {}".format(request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']))
     # Validate model type
-    print(data)
     federated_trainer.process(request.environ['REMOTE_ADDR'], data)
     return jsonify(200)
 
