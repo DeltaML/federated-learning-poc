@@ -8,12 +8,9 @@ import RequirementsForm from '../requirements-form/RequirementsForm'
 
 const styles = theme => ({
     root: {
-        flexGrow: 1,
+        flexGrow: 3,
     },
 
-    control: {
-        padding: theme.spacing.unit * 2,
-    },
 });
 
 class Home extends React.Component {
@@ -28,13 +25,13 @@ class Home extends React.Component {
         return <div>
             <SimpleAppBar/>
 
-            <Grid container className={classes.root} spacing={16}>
+            <Grid container className={classes.root}>
                 <Grid item>
-                    <Grid container className={classes.demo} spacing={16}>
-                        <Grid item>
+                    <Grid container className={classes.demo}>
+                        <Grid item xs={12}>
                             <RequirementsForm/>
                         </Grid>
-                        <Grid item>
+                        <Grid item xs={12}>
                             <Chart/>
                         </Grid>
                     </Grid>

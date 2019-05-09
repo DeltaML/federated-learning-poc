@@ -15,7 +15,7 @@
     "recharts": "^1.5.0",
     "typescript": "3.4.5"
   },
-  "proxy": "http://localhost:5000",
+  "proxy": "http://localhost:9090",
   "devDependencies": {},
   "scripts": {
     "start": "react-scripts start",

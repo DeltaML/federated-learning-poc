@@ -1,9 +1,14 @@
 import React from 'react';
+
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import Client from '../utils/ClientApi'
 const styles = theme => ({
     container: {
         display: 'flex',
@@ -26,34 +31,63 @@ const styles = theme => ({
     input: {
         display: 'none',
     },
+    root: {
+        display: 'flex',
+        flexWrap: 'wrap',
+    },
+    formControl: {
+        margin: theme.spacing.unit,
+        minWidth: 120,
+    },
 });
 
 
 class RequirementsForm extends React.Component {
     state = {
-        name: 'Cat in the Hat',
-        age: '',
-        multiline: 'Controlled',
-        currency: 'EUR',
+        model_type: '',
+        name: 'hai',
+        labelWidth: 0,
     };
 
-    handleChange = name => event => {
-        this.setState({[name]: event.target.value});
+
+      handleButtonClick = (event) => {
+
+          Client.sendOrderModel({ body: {}}, res => {
+          if (res.statusCode !== 200) {
+              console.log("ERROR")
+          } else {
+              console.log("OK")
+          }
+      })
+  };
+
+
+    handleChange = event => {
+        this.setState({[event.target.name]: event.target.value});
     };
+
 
     render() {
         const {classes} = this.props;
 
         return (
             <form className={classes.container} noValidate autoComplete="off">
-                <TextField
-                    id="standard-name"
-                    label="Name"
-                    className={classes.textField}
-                    value={this.state.name}
-                    onChange={this.handleChange('name')}
-                    margin="normal"
-                />
+                <FormControl className={classes.formControl}>
+                    <InputLabel htmlFor="model_type">Model Type</InputLabel>
+                    <Select
+                        value={this.state.model_type}
+                        onChange={this.handleChange}
+                        inputProps={{
+                            name: 'model_type',
+                            id: 'model_type',
+                        }}
+                    >
+                        <MenuItem value="">
+                            <em>None</em>
+                        </MenuItem>
+                        <MenuItem value={"LINEAR_REGRESSION"}>Linear Regression</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <TextField
                     id="standard-uncontrolled"
@@ -72,7 +106,11 @@ class RequirementsForm extends React.Component {
                     margin="normal"
                 />
 
-                <Button variant="contained" color="primary" className={classes.button}>
+                <Button variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        onClick={this.handleButtonClick}>
+
                     Run
                 </Button>
 
