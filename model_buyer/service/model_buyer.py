@@ -79,7 +79,7 @@ class ModelBuyer:
         if not model:
             raise OrderedModelNotFoundException(model_id)
 
-        x_test, y_test, a,b = self.data_loader.load_random_data()
+        x_test, y_test = self.data_loader.get_sub_set()
         prediction = model.predict(x_test, y_test)
         self.predictions.add(prediction)
         return prediction

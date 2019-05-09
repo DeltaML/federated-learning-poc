@@ -25,7 +25,7 @@ def create_app():
 
 def build_data_loader():
     data_loader = DataLoader(config['DATASETS_DIR'])
-    data_loader.load_random_data()
+    data_loader.load_data("data_test.csv")
     return data_loader
 
 
