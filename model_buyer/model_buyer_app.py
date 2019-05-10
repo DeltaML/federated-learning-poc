@@ -1,8 +1,10 @@
 import logging
 import os
 from logging.config import dictConfig
+import random
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
@@ -30,7 +32,7 @@ def build_data_loader():
 
 
 app = create_app()
-
+CORS(app)
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
@@ -40,7 +42,7 @@ data_loader = build_data_loader()
 model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
 
 
-## TODO: Refactor
+# TODO: Refactor
 def get_serialized_model(model):
     return {"requirements": model.requirements,
             "model": {"id": model.id,
@@ -53,6 +55,7 @@ def get_serialized_model(model):
 
 def get_serialized_prediction(prediction):
     return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse}
+
 
 @app.errorhandler(Exception)
 def handle_error(error):
@@ -131,4 +134,8 @@ def load_dataset():
 
 @app.route('/ping', methods=['POST'])
 def ping():
-    return jsonify("pong")
+    response = {
+            "values": [1, 2, 3],
+            "MSE": random.randint(1,101)
+        }
+    return jsonify(response)

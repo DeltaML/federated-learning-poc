@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import SimpleAppBar from '../bar/Bar'
-import Chart from '../chart/Chart'
+
 import RequirementsForm from '../requirements-form/RequirementsForm'
 
 const styles = theme => ({
@@ -28,12 +28,13 @@ class Home extends React.Component {
             <Grid container className={classes.root}>
                 <Grid item>
                     <Grid container className={classes.demo}>
-                        <Grid item xs={12}>
+                        <RequirementsForm/>
+                        {/*<Grid item xs={12}>
                             <RequirementsForm/>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Chart/>
-                        </Grid>
+                        </Grid>*/}
+                        {/*<Grid item xs={12}>
+                            {/*<Chart/>
+                        </Grid>*/}
                     </Grid>
                 </Grid>
 
