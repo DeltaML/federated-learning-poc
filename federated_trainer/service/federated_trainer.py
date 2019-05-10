@@ -33,6 +33,9 @@ class FederatedTrainer:
         self.data_owners.append(new_data_owner)
         return {'number': len(self.data_owners)}
 
+    def send_requirements_to_data_owner(self, data):
+        self.data_owner_connector.send_requirements_to_data_owners(self.data_owners, data)
+
     def async_server_processing(self, remote_address, model_id, func, *args):
         logging.info("process_in_background...")
         self.model_buyer_connector.set_remote_buyer_data(remote_address, model_id)
@@ -43,17 +46,18 @@ class FederatedTrainer:
         Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
-        return remote_address, data['model_id'], self.federated_learning_wrapper, data['requirements'], data["public_key"]
+        return remote_address, data['model_id'], self.federated_learning_wrapper, data
 
     @normalize_optimized_response(active=True)
-    def federated_learning(self, requirements, public_key):
+    def federated_learning(self, data):
         logging.info("Init federated_learning")
         n_iter = self.config["MAX_ITERATIONS"]
+        self.send_requirements_to_data_owner(data)
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
-        self.encryption_service.set_public_key(public_key)
+        self.encryption_service.set_public_key(data["public_key"])
         models = []
         for i in range(n_iter):
-            updates = self.get_updates(requirements, public_key)
+            updates = self.get_updates(data['requirements']['model_type'], data["public_key"])
             updates = self.federated_averaging(updates)
             self.send_global_model(updates)
             models = self.get_trained_models()
@@ -62,8 +66,8 @@ class FederatedTrainer:
         return self.federated_averaging(models)
 
     @serialize_encrypted_server_data(schema=json.dumps)
-    def federated_learning_wrapper(self, requirements, public_key):
-        return self.federated_learning(requirements, public_key)
+    def federated_learning_wrapper(self, data):
+        return self.federated_learning(data)
 
     def send_global_model(self, weights):
         """Encripta y envia el nombre del modelo a ser entrenado"""
@@ -73,7 +77,7 @@ class FederatedTrainer:
     def get_updates(self, requirements, public_key):
         """
 
-        :param model_type:
+        :param requirements:
         :param public_key:
         :return:
         """
