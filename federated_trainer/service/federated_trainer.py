@@ -53,7 +53,10 @@ class FederatedTrainer:
         for data_owner_link in owners_with_data:
             if (data['model_id'] in data_owner_link) and (data_owner_link[data['model_id']][1]):
                 data_owner_key = data_owner_link[data['model_id']][0]
-                self.linked_data_owners[data['model_id']] = self.data_owners[data_owner_key]
+                if data['model_id'] not in self.linked_data_owners:
+                    self.linked_data_owners[data['model_id']] = []
+                self.linked_data_owners[data['model_id']].append(self.data_owners[data_owner_key])
+
 
     @normalize_optimized_response(active=True)
     def federated_learning(self, data):
@@ -86,6 +89,7 @@ class FederatedTrainer:
         """
         :param requirements:
         :param public_key:
+        :param model_id
         :return:
         """
         return self.data_owner_connector.get_update_from_data_owners(self.linked_data_owners[model_id], requirements, public_key)
