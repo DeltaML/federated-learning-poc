@@ -10,8 +10,10 @@ python:
 # You can also install the coverage here to avoid it being in the requirements file
 # It is important to avoid things like coverage, pep8 that are not required to run the app
 install:
-  - pip install -r requirements.txt
   - pip install coverage
+  - pip install -r federated_trainer/requirements.txt
+  - pip install -r data_owner/requirements.txt
+  - pip install -r model_buyer/requirements.txt
   
 
 # command to run tests 
@@ -19,10 +21,8 @@ install:
 # There are many ways to do dependeing on how you want travis to run and get you coverage
 script: true
   - nosetests --with-coverage --coverage report
-  
- # Another command/method to run tests
-script: 
   - pytest
+
 
 # This returns the coverage and let's coveralls know the coverage percent. 
 # Note that travis will build your system and get the coverage. 
