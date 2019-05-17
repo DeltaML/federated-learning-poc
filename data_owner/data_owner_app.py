@@ -2,7 +2,7 @@ import logging
 import os
 from logging.config import dictConfig
 from flask import Flask, request, jsonify
-from data_owner.service.data_owner_service import DataOwnerFactory
+from data_owner.service.data_owner import DataOwnerFactory
 from commons.data.data_loader import DataLoader
 from data_owner.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
     serialize_encrypted_model_data
@@ -40,8 +40,7 @@ def create_app():
 
 
 def build_data_loader(config):
-    data_loader = DataLoader()
-    data_loader.load_data()
+    data_loader = DataLoader(config["DATASETS_DIR"])
     return data_loader
 
 
@@ -67,8 +66,9 @@ def serve(path):
 @app.route('/dataset', methods=['POST'])
 def load_dataset():
     file = request.files.get('file')
+    filename = request.files.get('filename') or file.filename
     logging.info(file)
-    file.save('./dataset/data.csv')
+    file.save('./dataset/{}'.format(filename))
     file.close()
     return jsonify(200)
 
@@ -98,7 +98,8 @@ def process_weights():
     logging.info("Process weights")
     data = request.get_json()
     # model type
-    model_type = data['type']
+    model_type = data['model_type']
+    #requirements = data['requirements']
     # encrypted_model
     return data_owner.process(model_type, data["public_key"])
 
@@ -124,4 +125,14 @@ def get_model():
 
 @app.route('/ping', methods=['GET'])
 def ping():
+    return jsonify(200)
+
+
+@app.route('/data/requeriments', methods=['POST'])
+def link_reqs_to_file():
+    data = request.get_json()
+    print(data)
+    training_req_id = data['model_id']
+    reqs = data['requirements']['data_requirements']
+    data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
     return jsonify(200)

@@ -29,6 +29,12 @@ class DataOwnerConnector:
         results = self.async_thread_pool.run(executable=self._get_data_owner_model, args=args)
         return [result for result in results]
 
+    @optimized_collection_response(optimization=np.asarray, active=True)
+    def send_requirements_to_data_owners(self, data_owners, data):
+        args = [("http://{}:{}/data/requeriments".format(data_owner.host, self.data_owner_port), data) for data_owner in data_owners]
+        results = self.async_thread_pool.run(executable=self._send_requirements_to_data_owner, args=args)
+        return [result for result in results]
+
     @deserialize_encrypted_server_data()
     def _get_update_from_data_owner(self, data):
         """
@@ -38,7 +44,7 @@ class DataOwnerConnector:
         """
         data_owner, model_type, public_key = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
-        payload = {"type": model_type, "public_key": public_key}
+        payload = {"model_type": model_type, "public_key": public_key}
         response = requests.post(url, json=payload)
         return response.json()
 
@@ -60,3 +66,8 @@ class DataOwnerConnector:
     @normalize_optimized_collection(active=True)
     def _build_data(self, data_owner, weights):
         return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": weights}
+
+    def _send_requirements_to_data_owner(self, data):
+        url, payload = data
+        response = requests.post(url, json=payload, timeout=None)
+        return response.json()

@@ -32,18 +32,46 @@ pip install -r model_buyer/requirements.txt
 
 ## Usage 
  
-### Get model from federated trainer
+### Make model from federated trainer
+
+``` bash
+curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model" --data @examples/model.json
+```
+
+
+### Get make model 
+
+``` bash
+curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model/<model_id>"
+```
+
+
+### Get all make model 
 
 ``` bash
 curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model"
 ```
 
-### Get prediction
+
+
+### Generate prediction
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/prediction"
+curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction"
 ```
 
+### Get prediction 
+
+``` bash
+curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction/<prediction_id>"
+```
+
+
+### Get all prediction 
+
+``` bash
+curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction"
+```
 
 
 ## Model buyer configuration
@@ -53,7 +81,6 @@ curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/predic
 config = {
     'server_register_url': "http://cte_federated_trainer:8080/model",
     'key_length': 1024,
-    'port': 9090,
     'active_encryption': False
 }
 ```
@@ -62,5 +89,4 @@ config = {
 
 - server_register_url: __TODO__
 - key_length: __TODO__
-- port: __TODO__
 - active_encryption: __TODO__
