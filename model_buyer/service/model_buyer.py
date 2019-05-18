@@ -32,8 +32,7 @@ class ModelBuyer:
         data = dict(requirements=requirements,
                     model_id=model.id,
                     public_key=self.public_key.n)
-        response = requests.post(self.config["server_register_url"], json=data)
-        response.raise_for_status()
+        requests.post(self.config["server_register_url"], json=data).raise_for_status()
         model.request_data = data
         self.models.add(model)
         return {"requirements": model.requirements,

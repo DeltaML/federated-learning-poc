@@ -1,16 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
+
 import SimpleAppBar from '../bar/Bar'
 
 import RequirementsForm from '../requirements-form/RequirementsForm'
 
 const styles = theme => ({
     root: {
-        flexGrow: 3,
-    },
-
+        flexGrow: 1,
+    }
 });
 
 class Home extends React.Component {
@@ -22,23 +21,9 @@ class Home extends React.Component {
     render() {
         const {classes} = this.props;
 
-        return <div>
+        return <div className={classes.root}>
             <SimpleAppBar/>
-
-            <Grid container className={classes.root}>
-                <Grid item>
-                    <Grid container className={classes.demo}>
-                        <RequirementsForm/>
-                        {/*<Grid item xs={12}>
-                            <RequirementsForm/>
-                        </Grid>*/}
-                        {/*<Grid item xs={12}>
-                            {/*<Chart/>
-                        </Grid>*/}
-                    </Grid>
-                </Grid>
-
-            </Grid>
+            <RequirementsForm/>
         </div>;
     }
 }

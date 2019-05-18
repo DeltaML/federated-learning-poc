@@ -136,6 +136,6 @@ def load_dataset():
 def ping():
     response = {
             "values": [1, 2, 3],
-            "MSE": random.randint(1,101)
+            "MSE": random.randint(1,2)
         }
     return jsonify(response)

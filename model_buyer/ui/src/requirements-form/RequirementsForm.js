@@ -1,5 +1,4 @@
 import React from 'react';
-
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -9,6 +8,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import Client from '../utils/ClientApi'
 import TextField from '@material-ui/core/TextField';
+import Grid from '@material-ui/core/Grid';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -16,52 +16,8 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import {CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis,} from 'recharts';
-
-
-const styles = theme => ({
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
-    textField: {
-        marginLeft: theme.spacing.unit,
-        marginRight: theme.spacing.unit,
-        width: 500,
-    },
-    dense: {
-        marginTop: 19,
-    },
-    menu: {
-        width: 200,
-    },
-    button: {
-        margin: theme.spacing.unit,
-    },
-    input: {
-        display: 'none',
-    },
-
-    formControl: {
-        margin: theme.spacing.unit,
-        minWidth: 120,
-    },
-    root: {
-        width: '100%',
-        maxWidth: 360,
-        backgroundColor: theme.palette.background.paper,
-        position: 'relative',
-        overflow: 'auto',
-        maxHeight: 300,
-    },
-    listSection: {
-        backgroundColor: 'inherit',
-    },
-    ul: {
-        backgroundColor: 'inherit',
-        padding: 0,
-    },
-});
-
+import styles from './styles'
+import model from './model'
 
 class RequirementsForm extends React.Component {
     state = {
@@ -70,29 +26,8 @@ class RequirementsForm extends React.Component {
         model_id: '',
         weights: [],
         active_update: false,
-        data_chart: [
-                {name: 0, MSE: 0}
-            ],
-        model: {
-            model_type: '',
-            data_requirements: {
-                features: {
-                    list: [],
-                    range: [],
-                    pre_processing: [
-                        {
-                            method: '',
-                            parameters: ''
-                        }
-                    ],
-                    desc: {}
-                },
-                target: {
-                    range: [],
-                    desc: []
-                }
-            }
-        }
+        data_chart: [],
+        model: model
     };
 
     handleSubmit = (e) => {
@@ -107,9 +42,8 @@ class RequirementsForm extends React.Component {
         const data = JSON.stringify(this.state.model)
         Client.sendOrderModel(data)
             .then(resp => {
-                this.state.active_update = true;
                 const model_id = resp.model.id
-                this.setState({model_id: model_id})
+                this.setState({model_id: model_id, active_update: true})
             })
 
     }
@@ -127,12 +61,10 @@ class RequirementsForm extends React.Component {
 
     updateWeights(update) {
         this.setState(state => {
-            console.log(state.weights)
-            console.log(update)
             const value = {error: update.MSE, values: update.values, weight_id: state.weight_id}
             const weight_id = state.weight_id + 1;
             const weights = state.weights.concat(value);
-            const data_chart = state.data_chart.concat({name:state.weight_id, MSE:update.MSE });
+            const data_chart = state.data_chart.concat({name: state.weight_id, MSE: update.MSE});
             return {
                 weights: weights,
                 data_chart: data_chart,
@@ -163,52 +95,72 @@ class RequirementsForm extends React.Component {
         clearInterval(this.interval);
     }
 
+    handleClick () {
+        console.log(this.state.active_update)
+         this.setState({active_update: false})
+        console.log(this.state.active_update)
+    }
 
     render() {
         const {classes} = this.props;
 
         return (
-            <div>
-                <div>
-                    <form className={classes.container} noValidate autoComplete="off" onSubmit={this.handleSubmit}>
-                        <TextField
-                            id="model-id"
-                            label="Model ID"
-                            defaultValue=""
-                            className={classes.textField}
-                            margin="normal"
-                            InputProps={{
-                                readOnly: true,
-                            }}
-                            value={this.state.model_id}
-                            variant="outlined"
-                        />
-                        <FormControl className={classes.formControl}>
+            <div className={classes.root}>
+                <Grid container>
+                    <Grid item xs={4}>
+                        <form className={classes.container} noValidate autoComplete="off" onSubmit={this.handleSubmit}>
+                            <div>
+                                <TextField
+                                    id="model-id"
+                                    label="Model ID"
+                                    defaultValue=""
+                                    className={classes.textField}
+                                    margin="normal"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                    value={this.state.model_id}
+                                    variant="outlined"
+                                />
+                            </div>
+                            <div>
+                                <FormControl className={classes.formControl}>
 
-                            <InputLabel htmlFor="model-type">Model Type</InputLabel>
-                            <Select
-                                value={this.state.model_type}
-                                defaultValue="NONE"
-                                onChange={this.handleChange}
+                                    <InputLabel htmlFor="model-type">Model Type</InputLabel>
+                                    <Select
+                                        value={this.state.model_type}
+                                        defaultValue="NONE"
+                                        onChange={this.handleChange}
 
-                            >
-                                <MenuItem value="">
-                                    <em>None</em>
-                                </MenuItem>
-                                <MenuItem value="LINEAR_REGRESSION">Linear Regression</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <Button variant="contained"
-                                color="primary"
-                                className={classes.button}
-                                type="submit">
+                                    >
+                                        <MenuItem value="">
+                                            <em>None</em>
+                                        </MenuItem>
+                                        <MenuItem value="LINEAR_REGRESSION">Linear Regression</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </div>
+                            <div>
+                                <Button variant="contained"
+                                        color="primary"
+                                        className={classes.button}
+                                        type="submit">
 
-                            Run
-                        </Button>
-                    </form>
-                </div>
-                <div>
-                    <div>
+                                    Run
+                                </Button>
+                                <Button variant="contained"
+                                        color="secondary"
+                                        className={classes.button}
+                                        onClick={(e) => this.handleClick(e)}>
+
+                                    Stop
+                                </Button>
+                            </div>
+
+
+                        </form>
+                    </Grid>
+                    <Grid item xs={4}>
                         <LineChart
                             width={500}
                             height={300}
@@ -224,8 +176,8 @@ class RequirementsForm extends React.Component {
                             <Legend/>
                             <Line type="monotone" dataKey="MSE" stroke="#8884d8" activeDot={{r: 8}}/>
                         </LineChart>
-                    </div>
-                    <div>
+                    </Grid>
+                    <Grid item xs={4}>
                         <Paper className={classes.root}>
                             <Table className={classes.table}>
                                 <TableHead>
@@ -248,8 +200,8 @@ class RequirementsForm extends React.Component {
                                 </TableBody>
                             </Table>
                         </Paper>
-                    </div>
-                </div>
+                    </Grid>
+                </Grid>
 
 
             </div>
