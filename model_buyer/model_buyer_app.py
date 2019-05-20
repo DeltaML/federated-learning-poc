@@ -3,7 +3,7 @@ import os
 from logging.config import dictConfig
 import random
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 from commons.data.data_loader import DataLoader
@@ -16,7 +16,7 @@ dictConfig(logging_config)
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__)
+    flask_app = Flask(__name__, static_folder='ui/build/')
     # ensure the instance folder exists
     try:
         os.makedirs(flask_app.instance_path)
@@ -70,6 +70,16 @@ def handle_error(error):
         }
     }
     return jsonify(response), status_code
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
 
 
 @app.route('/model', methods=['POST'])

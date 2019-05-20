@@ -9,7 +9,7 @@ class SimpleAppBar extends Component {
   render() {
       return (
     <div className="SimpleAppBar">
-      <AppBar position="static" color="default">
+      <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" color="inherit">
             Model Buyer

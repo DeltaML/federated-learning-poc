@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -15,9 +14,11 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+
 import {CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis,} from 'recharts';
-import styles from './styles'
 import model from './model'
+import styles from "./styles";
+import {withStyles} from "@material-ui/core/styles/index";
 
 class RequirementsForm extends React.Component {
     state = {
@@ -63,8 +64,8 @@ class RequirementsForm extends React.Component {
         this.setState(state => {
             const value = {error: update.MSE, values: update.values, weight_id: state.weight_id}
             const weight_id = state.weight_id + 1;
-            const weights = state.weights.concat(value);
-            const data_chart = state.data_chart.concat({name: state.weight_id, MSE: update.MSE});
+            const weights = state.weights.slice().concat(value);
+            const data_chart = state.data_chart.slice().concat({name: state.weight_id, MSE: update.MSE});
             return {
                 weights: weights,
                 data_chart: data_chart,
@@ -95,9 +96,9 @@ class RequirementsForm extends React.Component {
         clearInterval(this.interval);
     }
 
-    handleClick () {
+    handleClick() {
         console.log(this.state.active_update)
-         this.setState({active_update: false})
+        this.setState({active_update: false})
         console.log(this.state.active_update)
     }
 
@@ -105,33 +106,31 @@ class RequirementsForm extends React.Component {
         const {classes} = this.props;
 
         return (
-            <div className={classes.root}>
-                <Grid container>
-                    <Grid item xs={4}>
-                        <form className={classes.container} noValidate autoComplete="off" onSubmit={this.handleSubmit}>
-                            <div>
+            <Grid container>
+                <Grid item container direction="column" xs={12} sm={6} lg={4} xl={3} className={classes.container}>
+                    <Paper  style={{padding: 24}}>
+                        <form noValidate autoComplete="off" onSubmit={this.handleSubmit}>
+                            <Grid item xs>
                                 <TextField
                                     id="model-id"
                                     label="Model ID"
                                     defaultValue=""
-                                    className={classes.textField}
                                     margin="normal"
                                     InputProps={{
                                         readOnly: true,
                                     }}
                                     value={this.state.model_id}
-                                    variant="outlined"
+                                    className={classes.textField}
                                 />
-                            </div>
-                            <div>
+                            </Grid>
+                            <Grid item xs>
                                 <FormControl className={classes.formControl}>
 
-                                    <InputLabel htmlFor="model-type">Model Type</InputLabel>
+                                    <InputLabel shrink htmlFor="model-type">Model Type</InputLabel>
                                     <Select
                                         value={this.state.model_type}
                                         defaultValue="NONE"
                                         onChange={this.handleChange}
-
                                     >
                                         <MenuItem value="">
                                             <em>None</em>
@@ -139,35 +138,39 @@ class RequirementsForm extends React.Component {
                                         <MenuItem value="LINEAR_REGRESSION">Linear Regression</MenuItem>
                                     </Select>
                                 </FormControl>
-                            </div>
-                            <div>
+                            </Grid>
+                            <Grid item xs>
+                                <TextField
+                                    id="outlined-name"
+                                    label="Name"
+                                    value={"asd"}
+                                    margin="normal"
+                                />
+                            </Grid>
+                            <Grid item xs style={{padding: 24}}>
                                 <Button variant="contained"
                                         color="primary"
-                                        className={classes.button}
                                         type="submit">
 
                                     Run
                                 </Button>
                                 <Button variant="contained"
                                         color="secondary"
-                                        className={classes.button}
                                         onClick={(e) => this.handleClick(e)}>
-
                                     Stop
                                 </Button>
-                            </div>
-
-
+                            </Grid>
                         </form>
-                    </Grid>
-                    <Grid item xs={4}>
+                    </Paper>
+
+                </Grid>
+                <Grid item xs={12} sm={6} lg={4} xl={3} style={{padding: 24}}>
+                    <Paper style={{padding: 24}}>
                         <LineChart
                             width={500}
                             height={300}
                             data={this.state.data_chart}
-                            margin={{
-                                top: 5, right: 30, left: 20, bottom: 5,
-                            }}
+
                         >
                             <CartesianGrid strokeDasharray="3 3"/>
                             <XAxis dataKey="name"/>
@@ -176,42 +179,42 @@ class RequirementsForm extends React.Component {
                             <Legend/>
                             <Line type="monotone" dataKey="MSE" stroke="#8884d8" activeDot={{r: 8}}/>
                         </LineChart>
-                    </Grid>
-                    <Grid item xs={4}>
-                        <Paper className={classes.root}>
-                            <Table className={classes.table}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>#</TableCell>
-                                        <TableCell align="right">Values</TableCell>
-                                        <TableCell align="right">MSE</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {this.state.weights.map(row => (
-                                        <TableRow key={row.weight_id}>
-                                            <TableCell component="th" scope="row">
-                                                {row.weight_id}
-                                            </TableCell>
-                                            <TableCell align="right">{row.values}</TableCell>
-                                            <TableCell align="right">{row.error}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </Paper>
-                    </Grid>
+                    </Paper>
+
                 </Grid>
-
-
-            </div>
-
+                <Grid item xs={12} sm={6} lg={4} xl={3} style={{padding: 24}}>
+                    <Paper style={{padding: 24}}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>#</TableCell>
+                                    <TableCell align="right">Values</TableCell>
+                                    <TableCell align="right">MSE</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {this.state.weights.map(row => (
+                                    <TableRow key={row.weight_id}>
+                                        <TableCell component="th" scope="row">
+                                            {row.weight_id}
+                                        </TableCell>
+                                        <TableCell align="right">{row.values}</TableCell>
+                                        <TableCell align="right">{row.error}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Paper>
+                </Grid>
+            </Grid>
         );
     }
 }
 
+
 RequirementsForm.propTypes = {
-    classes: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired,
 };
+
 
 export default withStyles(styles)(RequirementsForm);
