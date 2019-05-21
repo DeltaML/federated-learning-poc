@@ -1,6 +1,6 @@
 # DeltaML/federated-learning-poc
 
-[![Build Status](https://travis-ci.com/DeltaML/federated-learning-poc.svg?branch=master)](https://travis-ci.com/DeltaML/federated-learning-poc)
+[![Build Status](https://travis-ci.com/DeltaML/federated-learning-poc.svg?branch=dev)](https://travis-ci.com/DeltaML/federated-learning-poc)
 
 Repository that contains a Proof of Concept for the implementation of a Federated Learning framework.
 
