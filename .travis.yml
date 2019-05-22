@@ -5,11 +5,16 @@ language: python
 python:
   - "3.6"
 
+env: SKIP_INTERPRETER=true
+
+before_install:
+  - git clone https://github.com/TravisToolbox/pycodestyle-travis.git
 
 # command to install dependencies in the requirements file
 # You can also install the coverage here to avoid it being in the requirements file
 # It is important to avoid things like coverage, pep8 that are not required to run the app
 install:
+  - ./pycodestyle-travis/install.sh
   - pip install coverage
   - pip install -r federated_trainer/requirements.txt
   - pip install -r data_owner/requirements.txt
@@ -20,6 +25,7 @@ install:
 # This is the script that enables travis to run the tests
 # There are many ways to do dependeing on how you want travis to run and get you coverage
 script: true
+  - ./pycodestyle-travis/scan.sh
   - nosetests --with-coverage --coverage report
   - pytest
 

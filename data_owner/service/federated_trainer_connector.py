@@ -17,5 +17,4 @@ class FederatedTrainerConnector:
         logging.info("Register client {} to server {}".format(client_data, server_register_url))
         response = requests.post(server_register_url, json=client_data)
         response.raise_for_status()
-        #print(response)
         return response.json()

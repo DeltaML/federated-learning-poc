@@ -31,7 +31,7 @@ class DataOwner:
     def process(self, model_type, public_key):
         """
         Process to run model
-        :param requirements:
+        :param model_type:
         :param public_key:
         :return:
         """
@@ -67,6 +67,7 @@ class DataOwner:
         self.trainings[training_request_id] = filename
         self.data_loader.load_data(filename)
         return filename is not None
+
 
 class DataOwnerFactory:
     @classmethod
