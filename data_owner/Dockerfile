@@ -12,7 +12,7 @@ ADD ./commons ./commons
 ADD ./data_owner ./data_owner
 
 
-RUN npm install && npm run-script build --prefix ./data_owner/ui
+RUN npm install --prefix ./data_owner/ui && npm run build --prefix ./data_owner/ui
 RUN pip install -r ./data_owner/requirements.txt
 EXPOSE 5000
 

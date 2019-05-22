@@ -10,7 +10,7 @@ RUN mkdir -p ./model_buyer
 ADD ./commons ./commons
 ADD ./model_buyer ./model_buyer
 
-RUN npm build --prefix ./model_buyer/ui
+RUN npm install --prefix ./model_buyer/ui && npm run build --prefix ./model_buyer/ui
 RUN pip install -r ./model_buyer/requirements.txt
 
 EXPOSE 9090
