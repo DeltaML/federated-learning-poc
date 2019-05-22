@@ -80,6 +80,7 @@ class ModelBuyer:
 
         x_test, y_test = self.data_loader.get_sub_set()
         prediction = model.predict(x_test, y_test)
+        prediction.model = model
         self.predictions.add(prediction)
         return prediction
 

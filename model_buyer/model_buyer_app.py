@@ -1,7 +1,7 @@
 import logging
 import os
-from logging.config import dictConfig
 import random
+from logging.config import dictConfig
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -54,7 +54,8 @@ def get_serialized_model(model):
 
 
 def get_serialized_prediction(prediction):
-    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse}
+    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse,
+            "model": get_serialized_model(prediction.model)}
 
 
 @app.errorhandler(Exception)
@@ -71,6 +72,7 @@ def handle_error(error):
     }
     return jsonify(response), status_code
 
+
 # Serve React App
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -79,7 +81,6 @@ def serve(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
-
 
 
 @app.route('/model', methods=['POST'])
@@ -145,7 +146,7 @@ def load_dataset():
 @app.route('/ping', methods=['POST'])
 def ping():
     response = {
-            "values": [1, 2, 3],
-            "MSE": random.randint(1,2)
-        }
+        "values": [1, 2, 3],
+        "MSE": random.randint(1, 2)
+    }
     return jsonify(response)

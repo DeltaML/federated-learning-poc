@@ -17,6 +17,24 @@ function sendPing(params) {
 
 }
 
+function sendPrediction(params) {
+    console.log(params)
+    return fetch(RoutesList.prediction, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: params
+    })
+        .then(response => {
+            console.log(response);
+            return response.json();
+        })
+        .catch(response => {
+            console.log(response);
+        })
+
+}
 
 
 function sendOrderModel(params) {
@@ -39,7 +57,7 @@ function sendOrderModel(params) {
 
 }
 
-const Client = {sendPing, sendOrderModel};
+const Client = {sendPing, sendOrderModel, sendPrediction};
 export default Client;
 
 const RoutesList = {

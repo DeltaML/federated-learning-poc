@@ -60,16 +60,17 @@ class RequirementsForm extends React.Component {
         return state.model
     }
 
-    updateWeights(update) {
+    updateWeights(data) {
         this.setState(state => {
-            const value = {error: update.MSE, values: update.values, weight_id: state.weight_id}
+            const value = {error: data.mse, values: data.values, weight_id: state.weight_id}
             const weight_id = state.weight_id + 1;
             const weights = state.weights.slice().concat(value);
-            const data_chart = state.data_chart.slice().concat({name: state.weight_id, MSE: update.MSE});
+            const data_chart = state.data_chart.slice().concat({name: state.weight_id, MSE: data.mse});
+            const modelIsFinished = data.model.model.status === "FINISHED";
             return {
                 weights: weights,
                 data_chart: data_chart,
-                weight_id
+                weight_id: weight_id
             }
         });
     }
@@ -81,7 +82,7 @@ class RequirementsForm extends React.Component {
                 model_id: this.state.model_id
             }
             const data = JSON.stringify(prediction)
-            Client.sendPing(data).then(resp => {
+            Client.sendPrediction(data).then(resp => {
                 this.updateWeights(resp)
             })
         }
@@ -188,7 +189,7 @@ class RequirementsForm extends React.Component {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>#</TableCell>
-                                    <TableCell align="right">Values</TableCell>
+                                    {/*<TableCell align="right">Values</TableCell>*/}
                                     <TableCell align="right">MSE</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -198,7 +199,7 @@ class RequirementsForm extends React.Component {
                                         <TableCell component="th" scope="row">
                                             {row.weight_id}
                                         </TableCell>
-                                        <TableCell align="right">{row.values}</TableCell>
+                                        {/*<TableCell align="right">{row.values}</TableCell>*/}
                                         <TableCell align="right">{row.error}</TableCell>
                                     </TableRow>
                                 ))}
