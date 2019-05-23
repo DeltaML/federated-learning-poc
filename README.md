@@ -1,5 +1,8 @@
 # DeltaML/federated-learning-poc
 
+[![Build Status](https://travis-ci.com/DeltaML/federated-learning-poc.svg?branch=master)](https://travis-ci.com/DeltaML/federated-learning-poc)
+[![Coverage Status](https://coveralls.io/repos/github/DeltaML/federated-learning-poc/badge.svg?branch=master)](https://coveralls.io/github/DeltaML/federated-learning-poc?branch=master)
+
 Repository that contains a Proof of Concept for the implementation of a Federated Learning framework.
 
 
