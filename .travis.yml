@@ -34,3 +34,10 @@ after_script:
 # Using codecov to get coverage
 after_success:
   - codecov
+
+
+notifications:
+  email:
+    recipients:
+      - rojasagustin90@gmail.com
+      - zebas.graffe@gmail.com
