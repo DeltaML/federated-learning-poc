@@ -36,5 +36,5 @@ after_success:
 notifications:
   email:
     recipients:
-      - rojasagustin90@gmail.com
-      - zebas.graffe@gmail.com
+      - ${USER_1}
+      - ${USER_2}
