@@ -10,8 +10,7 @@ python:
 # You can also install the coverage here to avoid it being in the requirements file
 # It is important to avoid things like coverage, pep8 that are not required to run the app
 install:
-  - pip install coverage
-  - pip install coveralls
+  - pip install coverage coveralls
   - pip install -r federated_trainer/requirements.txt
   - pip install -r data_owner/requirements.txt
   - pip install -r model_buyer/requirements.txt
