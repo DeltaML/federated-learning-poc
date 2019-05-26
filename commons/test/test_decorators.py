@@ -7,7 +7,7 @@ from commons.decorators.decorators import optimized_collection_parameter, optimi
 from commons.decorators.decorators import normalize_optimized_collection_argument, normalize_optimized_response
 
 
-class TestCashDecorator(unittest.TestCase):
+class TestCommonsDecorator(unittest.TestCase):
     def test_optimized_collection_parameter_inactive(self):
         data = [1, 2, 3]
         ref = MagicMock()
@@ -64,8 +64,6 @@ class TestCashDecorator(unittest.TestCase):
         def a(p1, p2, p3):
             return p3
         testing.assert_array_equal(a(ref, data, np_data), data)
-
-
 
     def test_normalize_optimized_response_inactive(self):
         data = [1, 2, 3]
