@@ -47,6 +47,7 @@ class CircularIntegration extends React.Component {
     if (file) {
       let data = new FormData();
       data.append('file', file);
+      data.append('filename', file.name)
       this.setState({
           uploadedFile: file
       });
