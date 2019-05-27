@@ -24,8 +24,8 @@ def create_app():
 
 
 def build_data_loader():
-    data_loader = DataLoader()
-    data_loader.load_data()
+    data_loader = DataLoader(config['DATASETS_DIR'])
+    data_loader.load_data("data_test.csv")
     return data_loader
 
 
@@ -38,7 +38,7 @@ public_key, private_key = encryption_service.generate_key_pair(config["key_lengt
 encryption_service.set_public_key(public_key.n)
 data_loader = build_data_loader()
 model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
-
+model_training_id = []
 
 ## TODO: Refactor
 def get_serialized_model(model):
