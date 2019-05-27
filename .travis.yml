@@ -20,7 +20,7 @@ install:
 # This is the script that enables travis to run the tests
 # There are many ways to do dependeing on how you want travis to run and get you coverage
 script: true
-  - coverage run --source=. -m unittest discover -s data_owner/tests/
+  - coverage run --source=. -m unittest discover -s data_owner/test/
   - coverage run --source=. -m unittest discover -s federated_trainer/tests/
   - pylint --output-format=text federated_trainer/src
 
@@ -36,5 +36,5 @@ after_success:
 notifications:
   email:
     recipients:
-      - ${USER_1}
-      - ${USER_2}
+      - $USER_1
+      - $USER_2
