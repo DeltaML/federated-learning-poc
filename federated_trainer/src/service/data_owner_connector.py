@@ -1,7 +1,7 @@
 import requests
 import numpy as np
 import json
-from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection
+from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument
 from federated_trainer.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient
 from commons.utils.async_thread_pool_executor import AsyncThreadPoolExecutor
 
@@ -63,7 +63,7 @@ class DataOwnerConnector:
         return requests.get(url).json()
 
     # ---
-    @normalize_optimized_collection(active=True)
+    @normalize_optimized_collection_argument(active=True)
     def _build_data(self, data_owner, weights):
         return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": weights}
 
