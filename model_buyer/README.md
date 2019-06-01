@@ -52,14 +52,14 @@ curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model
 ### Get make model 
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model/<model_id>"
+curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/model/<model_id>"
 ```
 
 
 ### Get all make model 
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model"
+curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/model"
 ```
 
 
@@ -67,20 +67,20 @@ curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/model
 ### Generate prediction
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction"
+curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction" --data '{"model_id": "<MODEL_ID>"}'
 ```
 
 ### Get prediction 
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction/<prediction_id>"
+curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/prediction/<prediction_id>"
 ```
 
 
 ### Get all prediction 
 
 ``` bash
-curl -v -H "Content-Type: application/json" -X POST "http://localhost:9090/prediction"
+curl -v -H "Content-Type: application/json" -X GET "http://localhost:9090/prediction"
 ```
 
 

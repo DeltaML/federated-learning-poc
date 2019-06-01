@@ -32,8 +32,7 @@ class ModelBuyer:
         data = dict(requirements=requirements,
                     model_id=model.id,
                     public_key=self.public_key.n)
-        response = requests.post(self.config["server_register_url"], json=data)
-        response.raise_for_status()
+        requests.post(self.config["server_register_url"], json=data).raise_for_status()
         model.request_data = data
         self.models.add(model)
         return {"requirements": model.requirements,
@@ -81,6 +80,7 @@ class ModelBuyer:
 
         x_test, y_test = self.data_loader.get_sub_set()
         prediction = model.predict(x_test, y_test)
+        prediction.model = model
         self.predictions.add(prediction)
         return prediction
 
