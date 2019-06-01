@@ -24,10 +24,20 @@ pip install -r model_buyer/requirements.txt
 
 
 ### Using Pycharm
-
-	Script Path: .../model_buyer/virtualenv/bin/gunicorn
+``` bash
+    Script Path: .../model_buyer/virtualenv/bin/gunicorn
 	Parameters: -b "0.0.0.0:9090" wsgi:app --preload
 	Working directory: ../model_buyer
+```
+	
+### Using Docker
+
+Select _LOCAL_PORT_ number to run some containers
+``` bash
+    docker build -t federated-learning-model-buyer --rm -f model_buyer/Dockerfile .
+    docker run --rm -it -p 9090:9090 federated-learning-model-buyer
+``` 
+
 
 
 ## Usage 

@@ -10,7 +10,7 @@ python:
 # You can also install the coverage here to avoid it being in the requirements file
 # It is important to avoid things like coverage, pep8 that are not required to run the app
 install:
-  - pip install coverage
+  - pip install coverage coveralls
   - pip install -r federated_trainer/requirements.txt
   - pip install -r data_owner/requirements.txt
   - pip install -r model_buyer/requirements.txt
@@ -20,17 +20,21 @@ install:
 # This is the script that enables travis to run the tests
 # There are many ways to do dependeing on how you want travis to run and get you coverage
 script: true
-  - nosetests --with-coverage --coverage report
-  - pytest
+  - coverage run --source=. -m unittest discover -s data_owner/test/
+  - coverage run --source=. -m unittest discover -s federated_trainer/tests/
+  - pylint --output-format=text federated_trainer/src
+
 
 
 # This returns the coverage and let's coveralls know the coverage percent. 
 # Note that travis will build your system and get the coverage. 
 # It cannot display, therefore coveralls becomes important to get the coverage
 # You can also use after_success
-after_script:
-  - coveralls
- 
-# Using codecov to get coverage
 after_success:
-  - codecov
+  - coveralls
+
+notifications:
+  email:
+    recipients:
+      - $USER_1
+      - $USER_2

@@ -26,8 +26,8 @@ pip install -r data_owner/requirements.txt
 
 Select _LOCAL_PORT_ number to run some containers
 ``` bash
-    docker build -t federated-learning-data_owner --rm -f data_owner/Dockerfile
-    docker run --rm -it -p <LOCAL_PORT>:5000 -p 3000:3000 federated-learning-data_owner
+    docker build -t federated-learning-data_owner --rm -f data_owner/Dockerfile .
+    docker run --rm -it -p <LOCAL_PORT>:5000 federated-learning-data_owner
 ``` 
 
 

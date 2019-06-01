@@ -16,7 +16,7 @@ def optimized_collection_response(optimization, active=False):
     return wrap
 
 
-def normalize_optimized_collection(active=False):
+def normalize_optimized_collection_argument(active=False):
     def wrap(f):
         def wrapped_normalize_optimized_collection(*args):
             # TODO: Refactor!!!
