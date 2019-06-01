@@ -39,16 +39,15 @@ def create_app():
     return flask_app
 
 
-def build_data_loader():
-    data_loader = DataLoader()
-    data_loader.load_data()
+def build_data_loader(config):
+    data_loader = DataLoader(config["DATASETS_DIR"])
     return data_loader
 
 
 # Global variables
 app = create_app()
 
-data_loader = build_data_loader()
+data_loader = build_data_loader(app.config)
 encryption_service = EncryptionService()
 data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
@@ -67,8 +66,9 @@ def serve(path):
 @app.route('/dataset', methods=['POST'])
 def load_dataset():
     file = request.files.get('file')
+    filename = request.files.get('filename') or file.filename
     logging.info(file)
-    file.save('./dataset/data.csv')
+    file.save('./dataset/{}'.format(filename))
     file.close()
     return jsonify(200)
 
@@ -98,9 +98,10 @@ def process_weights():
     logging.info("Process weights")
     data = request.get_json()
     # model type
-    requirements = data['requirements']
+    model_type = data['model_type']
+    #requirements = data['requirements']
     # encrypted_model
-    return data_owner.process(requirements, data["public_key"])
+    return data_owner.process(model_type, data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])
@@ -125,3 +126,13 @@ def get_model():
 @app.route('/ping', methods=['GET'])
 def ping():
     return jsonify(200)
+
+
+@app.route('/data/requeriments', methods=['POST'])
+def link_reqs_to_file():
+    data = request.get_json()
+    print(data)
+    training_req_id = data['model_id']
+    reqs = data['requirements']['data_requirements']
+    result = data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
+    return jsonify({training_req_id: (data_owner.client_id, result)})
