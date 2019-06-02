@@ -15,7 +15,11 @@ class FederatedTrainerConnector:
         """
         server_register_url = self.federated_trainer_host + "/dataowner"
         logging.info("Register client {} to server {}".format(client_data, server_register_url))
-        response = requests.post(server_register_url, json=client_data)
-        response.raise_for_status()
-        #print(response)
+        response = requests.post(server_register_url, json=client_data).raise_for_status()
+        return response.json()
+
+    def send_prediction(self, prediction):
+        server_register_url = self.federated_trainer_host + "/prediction"
+        logging.info("Send prediction")
+        response = requests.post(server_register_url, json=prediction).raise_for_status()
         return response.json()

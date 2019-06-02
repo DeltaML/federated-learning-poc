@@ -34,11 +34,12 @@ app = create_app()
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
-public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
-encryption_service.set_public_key(public_key.n)
+encryption_service.generate_key_pair(config["key_length"])
+
 data_loader = build_data_loader()
-model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
+model_buyer = ModelBuyer(encryption_service, data_loader, config)
 model_training_id = []
+
 
 ## TODO: Refactor
 def get_serialized_model(model):

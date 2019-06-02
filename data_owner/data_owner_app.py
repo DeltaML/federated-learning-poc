@@ -47,8 +47,11 @@ def build_data_loader(config):
 # Global variables
 app = create_app()
 
+
 data_loader = build_data_loader(app.config)
 encryption_service = EncryptionService()
+encryption_service.generate_key_pair(app.config["key_length"])
+
 data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
 
@@ -97,11 +100,8 @@ def process_weights():
     """
     logging.info("Process weights")
     data = request.get_json()
-    # model type
-    model_type = data['model_type']
-    #requirements = data['requirements']
     # encrypted_model
-    return data_owner.process(model_type, data["public_key"])
+    return data_owner.process(data['model_type'], data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])
@@ -131,8 +131,38 @@ def ping():
 @app.route('/data/requeriments', methods=['POST'])
 def link_reqs_to_file():
     data = request.get_json()
-    print(data)
     training_req_id = data['model_id']
     reqs = data['requirements']['data_requirements']
-    result = data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
+    result = data_owner.link_dataset_to_training_request(training_req_id, reqs)
     return jsonify({training_req_id: (data_owner.client_id, result)})
+
+
+# PREDICTIONS
+
+@app.route('/predictions/{prediction_id)', methods=['GET'])
+def get_prediction(prediction_id):
+    logging.info("Get prediction {}".format(prediction_id))
+    return jsonify(data_owner.get_prediction(prediction_id))
+
+
+@app.route('/predictions', methods=['GET'])
+def get_predictions():
+    logging.info("Get predictions")
+    return jsonify(data_owner.get_predictions())
+
+
+@app.route('/predictions', methods=['PATCH'])
+def patch_predictions(prediction_id):
+    logging.info("check_prediction_consistency prediction {}".format(prediction_id))
+    data = request.get_json()
+    updated_prediction = data_owner.check_prediction_consistency(prediction_id, data)
+    return jsonify(updated_prediction)
+
+
+
+
+
+
+
+
+

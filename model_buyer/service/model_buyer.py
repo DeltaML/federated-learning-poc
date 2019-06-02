@@ -3,16 +3,13 @@ import uuid
 
 import requests
 
-from commons.data.data_loader import DataLoader
 from model_buyer.exceptions.exceptions import OrderedModelNotFoundException
 from model_buyer.model.ordered_model import OrderedModel, OrderedModelStatus
 
 
 class ModelBuyer:
-    def __init__(self, public_key, private_key, encryption_service, data_loader, config):
+    def __init__(self, encryption_service, data_loader, config):
         self.id = str(uuid.uuid1())
-        self.public_key = public_key
-        self.private_key = private_key
         self.encryption_service = encryption_service
         self.data_loader = data_loader
         self.config = config
@@ -31,7 +28,7 @@ class ModelBuyer:
         model = OrderedModel(data_requirements, model_type)
         data = dict(requirements=requirements,
                     model_id=model.id,
-                    public_key=self.public_key.n)
+                    public_key=self.encryption_service.get_public_key())
         response = requests.post(self.config["server_register_url"], json=data)
         response.raise_for_status()
         model.request_data = data
@@ -58,7 +55,7 @@ class ModelBuyer:
         self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
 
     def _update_model(self, model_id, data, status):
-        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.private_key, data) if self.config[
+        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.encryption_service.get_private_key(), data) if self.config[
             "active_encryption"] else data
         model = self.get_model(model_id)
         model.set_weights(weights)
