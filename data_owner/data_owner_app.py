@@ -128,7 +128,7 @@ def ping():
     return jsonify(200)
 
 
-@app.route('/data/requeriments', methods=['POST'])
+@app.route('/data/requirements', methods=['POST'])
 def link_reqs_to_file():
     data = request.get_json()
     training_req_id = data['model_id']
@@ -139,7 +139,7 @@ def link_reqs_to_file():
 
 # PREDICTIONS
 
-@app.route('/predictions/{prediction_id)', methods=['GET'])
+@app.route('/predictions/<prediction_id>', methods=['GET'])
 def get_prediction(prediction_id):
     logging.info("Get prediction {}".format(prediction_id))
     return jsonify(data_owner.get_prediction(prediction_id))
@@ -151,7 +151,7 @@ def get_predictions():
     return jsonify(data_owner.get_predictions())
 
 
-@app.route('/predictions/{prediction_id}', methods=['PATCH'])
+@app.route('/predictions/<prediction_id>', methods=['PATCH'])
 def patch_predictions(prediction_id):
     logging.info("check_prediction_consistency prediction {}".format(prediction_id))
     data = request.get_json()

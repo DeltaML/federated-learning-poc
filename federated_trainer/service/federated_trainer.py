@@ -112,6 +112,7 @@ class FederatedTrainer:
     def federated_averaging(self, updates, model_id):
         """
         Sum all de partial updates and
+        :param model_id:
         :param updates:
         :return:
         """
@@ -129,3 +130,8 @@ class FederatedTrainer:
         :return:
         """
         self.model_buyer_connector.send_encrypted_prediction(self.global_models[data["model_id"]], data)
+
+    def send_prediction_to_data_owner(self, encrypted_prediction):
+        model = self.global_models[encrypted_prediction["model_id"]]
+        self.data_owner_connector.send_encrypted_prediction(data_owner=model.data_owner,
+                                                            encrypted_prediction=encrypted_prediction)

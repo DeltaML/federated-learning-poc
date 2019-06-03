@@ -51,13 +51,15 @@ class EncryptionService:
         pk = public_key if public_key else self.public_key
         return self.homomorphic_encryption.encrypt_collection(pk, collection)
 
-    def decrypt_collection(self, private_key, collection):
+    def decrypt_collection(self, collection, private_key=None):
         """
 
         :param collection:
+        :param private_key:
         :return:
         """
-        return self.homomorphic_encryption.decrypt_collection(private_key, collection)
+        pk = private_key if private_key else self.private_key
+        return self.homomorphic_encryption.decrypt_collection(pk, collection)
 
     def decrypt_and_deserizalize_collection(self, private_key, collection):
         return [self.homomorphic_encryption.decrypt_value(private_key, n) for n in self.get_deserialized_collection(collection)]

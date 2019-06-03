@@ -30,6 +30,6 @@ class ModelBuyerConnector:
         :param encrypted_prediction:
         :return:
         """
-        url = "http://{}:{}/predict/{}".format(model.remote_address, self.model_buyer_port, model.model_id)
+        url = "http://{}:{}/transform".format(model.remote_address, self.model_buyer_port, model.model_id)
         logging.info("Url {}".format(url))
         requests.post(url, json=encrypted_prediction)

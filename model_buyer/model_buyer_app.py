@@ -103,6 +103,13 @@ def get_model(model_id):
     return jsonify(get_serialized_model(model)), 200
 
 
+@app.route('/transform', methods=['POST'])
+def transform_prediction():
+    logging.info("transform prediction from data owner")
+    model_buyer.transform_prediction(request.get_json())
+    return jsonify(200), 200
+
+
 @app.route('/prediction', methods=['POST'])
 def make_prediction():
     data = request.get_json()
