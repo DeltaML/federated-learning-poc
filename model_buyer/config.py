@@ -1,5 +1,5 @@
 config = {
-    'server_register_url': "http://localhost:8080/model",
+    'FEDERATED_TRAINER_HOST': "http://localhost:8080",
     'key_length': 1024,
     'port': 9090,
     'active_encryption': False,

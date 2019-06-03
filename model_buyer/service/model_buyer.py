@@ -1,21 +1,18 @@
 import logging
 import uuid
-
-import requests
-
-from commons.data.data_loader import DataLoader
+from threading import Thread
 from model_buyer.exceptions.exceptions import OrderedModelNotFoundException
 from model_buyer.model.ordered_model import OrderedModel, OrderedModelStatus
+from model_buyer.service.federated_trainer_connector import FederatedTrainerConnector
 
 
 class ModelBuyer:
-    def __init__(self, public_key, private_key, encryption_service, data_loader, config):
+    def __init__(self, encryption_service, data_loader, config):
         self.id = str(uuid.uuid1())
-        self.public_key = public_key
-        self.private_key = private_key
         self.encryption_service = encryption_service
         self.data_loader = data_loader
         self.config = config
+        self.federated_trainer_connector = FederatedTrainerConnector(config)
         # TODO: refactor this to DB
         self.models = set()
         self.predictions = set()
@@ -30,13 +27,12 @@ class ModelBuyer:
         model_type = requirements["model_type"]
         model = OrderedModel(data_requirements, model_type)
         X_test, y_test = self.data_loader.get_sub_set()
-        data = dict(requirements=requirements,
-                    model_id=model.id,
-                    public_key=self.public_key.n,
-                    test_data=[X_test.tolist(), y_test.tolist()])
-        response = requests.post(self.config["server_register_url"], json=data)
-        response.raise_for_status()
-        model.request_data = data
+        model.request_data = dict(requirements=requirements,
+                                  model_id=model.id,
+                                  model_buyer_id=self.id,
+                                  public_key=self.encryption_service.get_public_key(),
+                                  test_data=[X_test.tolist(), y_test.tolist()])
+        self.federated_trainer_connector.send_model_order(model.request_data)
         self.models.add(model)
         return {"requirements": model.requirements,
                 "model": {"id": model.id,
@@ -60,7 +56,8 @@ class ModelBuyer:
         self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
 
     def _update_model(self, model_id, data, status):
-        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.private_key, data['model']) if self.config[
+        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.encryption_service.get_private_key(),
+                                                                              data['model']) if self.config[
             "active_encryption"] else data['model']
         model = self.get_model(model_id)
         model.set_weights(weights)
@@ -88,3 +85,23 @@ class ModelBuyer:
 
     def get_prediction(self, prediction_id):
         return next(filter(lambda x: x.id == prediction_id, self.predictions), None)
+
+    def transform_prediction(self, prediction_data):
+        """
+       {'model_id': self.model_id,
+        'prediction_id': self.id,
+        'encrypted_prediction': Data Owner encrypted prediction,
+        'public_key': Data Owner PK}
+       :param prediction_data:
+       :return:
+       """
+        decrypted_prediction = self.encryption_service.decrypt_collection(prediction_data["encrypted_prediction"])
+        encrypted_to_data_owner = self.encryption_service.encrypt_collection(decrypted_prediction,
+                                                                             public_key=prediction_data["public_key"])
+        prediction_transformed = {
+            "encrypted_prediction": encrypted_to_data_owner,
+            "model_id": prediction_data["model_id"],
+            "prediction_id": prediction_data["prediction_id"]
+        }
+        Thread(target=self.federated_trainer_connector.send_transformed_prediction,
+               args=prediction_transformed).start()

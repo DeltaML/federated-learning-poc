@@ -34,10 +34,10 @@ app = create_app()
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
-public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
-encryption_service.set_public_key(public_key.n)
+encryption_service.generate_key_pair(config["key_length"])
+
 data_loader = build_data_loader()
-model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
+model_buyer = ModelBuyer(encryption_service, data_loader, config)
 model_training_id = []
 
 
@@ -102,6 +102,13 @@ def get_models():
 def get_model(model_id):
     model = model_buyer.get_model(model_id)
     return jsonify(get_serialized_model(model)), 200
+
+
+@app.route('/transform', methods=['POST'])
+def transform_prediction():
+    logging.info("transform prediction from data owner")
+    model_buyer.transform_prediction(request.get_json())
+    return jsonify(200), 200
 
 
 @app.route('/prediction', methods=['POST'])

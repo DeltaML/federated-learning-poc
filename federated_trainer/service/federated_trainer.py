@@ -5,13 +5,22 @@ from threading import Thread
 
 from commons.decorators.decorators import normalize_optimized_response
 from commons.operations_utils.functions import sum_collection
-from federated_trainer.src.models.data_owner_instance import DataOwnerInstance
-from federated_trainer.src.service.data_owner_connector import DataOwnerConnector
-from federated_trainer.src.service.decorators import serialize_encrypted_server_data
-from federated_trainer.src.service.model_buyer_connector import ModelBuyerConnector
-from federated_trainer.src.service.federated_validator import FederatedValidator
+from federated_trainer.models.data_owner_instance import DataOwnerInstance
+from federated_trainer.service.data_owner_connector import DataOwnerConnector
+from federated_trainer.service.decorators import serialize_encrypted_server_data
+from federated_trainer.service.model_buyer_connector import ModelBuyerConnector
+from federated_trainer.service.federated_validator import FederatedValidator
 from commons.model.model_service import ModelFactory
 import numpy as np
+
+class GlobalModel:
+    def __init__(self, buyer_id, buyer_host, model_id, public_key, model_type):
+        self.buyer_id = buyer_id
+        self.model_id = model_id
+        self.buyer_host = buyer_host
+        self.public_key = public_key
+        self.model_type = model_type
+
 
 class FederatedTrainer:
     def __init__(self, encryption_service, config):
@@ -22,6 +31,7 @@ class FederatedTrainer:
         self.data_owner_connector = DataOwnerConnector(self.config["DATA_OWNER_PORT"], encryption_service, self.active_encryption)
         self.model_buyer_connector = ModelBuyerConnector(self.config["MODEL_BUYER_PORT"])
         self.linked_data_owners = {}
+        self.global_models = {}
 
     def register_data_owner(self, data_owner_data):
         """
@@ -38,9 +48,8 @@ class FederatedTrainer:
     def send_requirements_to_data_owner(self, data):
         return self.data_owner_connector.send_requirements_to_data_owners(list(self.data_owners.values()), data)
 
-    def async_server_processing(self, remote_address, model_id, func, *args):
+    def async_server_processing(self, func, *args):
         logging.info("process_in_background...")
-        self.model_buyer_connector.set_remote_buyer_data(remote_address, model_id)
         result = func(*args)
         self.model_buyer_connector.send_result(result)
 
@@ -48,7 +57,8 @@ class FederatedTrainer:
         Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
-        return remote_address, data['model_id'], self.federated_learning_wrapper, data
+        data["remote_address"] = remote_address
+        return self.federated_learning_wrapper, data
 
     def _link_data_owners_to_model_training(self, data):
         owners_with_data = self.send_requirements_to_data_owner(data)
@@ -69,6 +79,12 @@ class FederatedTrainer:
         X_test = np.asarray(X_test)
         y_test = np.asarray(y_test)
         model_id = data['model_id']
+        self.global_models[model_id] = GlobalModel(model_id=model_id,
+                                                   buyer_id=data["model_buyer_id"],
+                                                   buyer_host=data["remote_address"],
+                                                   public_key=data["public_key"],
+                                                   model_type=data['requirements']['model_type'])
+        # TODO: Link this in global model [1 Global Model -> N data owners linked]
         model_type = data['requirements']['model_type']
         self._link_data_owners_to_model_training(data)
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
@@ -88,8 +104,8 @@ class FederatedTrainer:
             # Sends partial result to model buyer every n_iter_partial_res iterations
             if (i % n_iter_partial_res) == 0:
                 contribution = validator.get_data_owners_contribution()
-                self.send_partial_result_to_model_buyer(averaged_updates, model_type, X_test, y_test, contribution)
-        return {'model': averaged_updates}#, 'mse': mse, 'contributions': contributions} #averaged_updates  # self.federated_averaging(models, model_id)
+                self.send_partial_result_to_model_buyer(averaged_updates, model_type, X_test, y_test, contribution, model_id)
+        return {'model': averaged_updates, 'model_id': model_id}#, 'mse': mse, 'contributions': contributions} #averaged_updates  # self.federated_averaging(models, model_id)
 
     def update_data_owners_contribution(self, updates, averaged_updates, owners, validator, X_test, y_test, model_type):
         for i in range(len(updates)):
@@ -103,9 +119,9 @@ class FederatedTrainer:
         partial_model.set_weights(updates)
         return partial_model.predict(X_test, y_test).mse
 
-    def send_partial_result_to_model_buyer(self, updates, model_type, X_test, y_test, contributions):
+    def send_partial_result_to_model_buyer(self, updates, model_type, X_test, y_test, contributions, model_id):
         mse = self.validate_against_model_buyer_test_data(updates, model_type, X_test, y_test)
-        partial_result = {'model': updates.tolist(), 'mse': mse, 'contributions': contributions}
+        partial_result = {'model': updates.tolist(), 'mse': mse, 'contributions': contributions, 'model_id': model_id}
         self.model_buyer_connector.send_partial_result(partial_result)
 
     @serialize_encrypted_server_data(schema=json.dumps)
@@ -113,7 +129,7 @@ class FederatedTrainer:
         return self.federated_learning(data)
 
     def send_global_model(self, weights, model_id):
-        """Encripta y envia el nombre del modelo a ser entrenado"""
+        """Encripta y envia el modelo a ser entrenado"""
         logging.info("Send global models")
         self.data_owner_connector.send_gradient_to_data_owners(self.linked_data_owners[model_id], weights)
 
@@ -130,6 +146,7 @@ class FederatedTrainer:
     def federated_averaging(self, updates, model_id):
         """
         Sum all de partial updates and
+        :param model_id:
         :param updates:
         :return:
         """
@@ -140,3 +157,15 @@ class FederatedTrainer:
         """obtiene el nombre del modelo a ser entrenado"""
         logging.info("get_trained_models")
         return self.data_owner_connector.get_data_owners_model(self.linked_data_owners[model_id])
+
+    def send_prediction_to_buyer(self, data):
+        """
+        :param data:
+        :return:
+        """
+        self.model_buyer_connector.send_encrypted_prediction(self.global_models[data["model_id"]], data)
+
+    def send_prediction_to_data_owner(self, encrypted_prediction):
+        model = self.global_models[encrypted_prediction["model_id"]]
+        self.data_owner_connector.send_encrypted_prediction(data_owner=model.data_owner,
+                                                            encrypted_prediction=encrypted_prediction)

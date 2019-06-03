@@ -1,3 +1,4 @@
+KEY_LENGTH = 20
 N_SEGMENTS = 5
 FEDERATED_TRAINER_HOST = "http://localhost:8080"
 ETA = 1.5
