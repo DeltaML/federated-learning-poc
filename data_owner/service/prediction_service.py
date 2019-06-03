@@ -1,11 +1,10 @@
-import uuid
+class DataOwnerPrediction:
 
-
-class Prediction:
-
-    def __init__(self, model_public_key, encrypted_prediction):
-        self.id = str(uuid.uuid1())
+    def __init__(self, model_id, model_public_key, public_key, encrypted_prediction):
+        self.id = encrypted_prediction.id
+        self.model_id = model_id
         self.model_public_key = model_public_key
+        self.public_key = public_key
         self.encrypted_prediction = encrypted_prediction
         self.confirmed = False
         self.is_valid = False
@@ -13,6 +12,12 @@ class Prediction:
     def update(self, valid_status):
         self.is_valid = valid_status
         self.confirmed = True
+
+    def get_data(self):
+        return {'model_id': self.model_id,
+                'prediction_id': self.id,
+                'encrypted_prediction': self.encrypted_prediction.get_values(),
+                'public_key': self.public_key}
 
 
 class PredictionService:
@@ -28,10 +33,11 @@ class PredictionService:
     def get(self, prediction_id=None):
         return self.predictions.get(prediction_id) if prediction_id else self.predictions.values()
 
-    @staticmethod
-    def _make_prediction(prediction_data):
-        return Prediction(model_public_key=prediction_data["model_public_key"],
-                          encrypted_prediction=prediction_data["encrypted_prediction"])
+    def _make_prediction(self, prediction_data):
+        return DataOwnerPrediction(model_id=prediction_data["model"]["model_id"],
+                                   model_public_key=prediction_data["model"]["public_key"],
+                                   public_key=self.encryption_service.get_public_key(),
+                                   encrypted_prediction=prediction_data["encrypted_prediction"])
 
     def check_consistency(self, prediction_id, prediction_data):
         """

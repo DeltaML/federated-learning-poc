@@ -1,4 +1,5 @@
 import requests
+import logging
 import numpy as np
 import json
 from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument
@@ -71,3 +72,17 @@ class DataOwnerConnector:
         url, payload = data
         response = requests.post(url, json=payload, timeout=None)
         return response.json()
+
+    def send_encrypted_prediction(self, data_owner, encrypted_prediction):
+        """
+        {'model_id': self.model_id,
+         'prediction_id': self.id,
+         'encrypted_prediction': Data Owner encrypted prediction,
+         'public_key': Data Owner PK}
+        :param model:
+        :param encrypted_prediction:
+        :return:
+        """
+        url = "http://{}:{}/predictions/{}".format(data_owner.host, self.data_owner_port, encrypted_prediction["prediction_id"])
+        logging.info("Url {}".format(url))
+        requests.patch(url, json=encrypted_prediction)

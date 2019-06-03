@@ -6,11 +6,8 @@ class ModelBuyerConnector:
 
     def __init__(self, model_buyer_port):
         self.model_buyer_port = model_buyer_port
-        self. remote_address = None
+        self.remote_address = None
         self.model_id = None
-
-    def set_remote_buyer_data(self, remote_address, model_id):
-        self.remote_address, self.model_id = remote_address, model_id
 
     def send_result(self, result):
         url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, self.model_id)
@@ -20,5 +17,19 @@ class ModelBuyerConnector:
     def send_partial_result(self, result):
         url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, self.model_id)
         logging.info("url {}".format(url))
-        logging.info("PArtials {}".format(result))
+        logging.info("Partials {}".format(result))
         requests.patch(url, json=result.tolist())
+
+    def send_encrypted_prediction(self, model, encrypted_prediction):
+        """
+        {'model_id': self.model_id,
+         'prediction_id': self.id,
+         'encrypted_prediction': Data Owner encrypted prediction,
+         'public_key': Data Owner PK}
+        :param model:
+        :param encrypted_prediction:
+        :return:
+        """
+        url = "http://{}:{}/predict/{}".format(model.remote_address, self.model_buyer_port, model.model_id)
+        logging.info("Url {}".format(url))
+        requests.post(url, json=encrypted_prediction)

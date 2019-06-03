@@ -22,10 +22,10 @@ class DataOwner:
         self.client_name = "data_owner {}".format(self.client_id)
         self.config = config
         self.data_loader = data_loader
-        self.encryption_service = encryption_service
         self.register_number = None
         self.model = None
         self.trainings = {}
+        self.encryption_service = encryption_service
         self.federated_trainer_connector = FederatedTrainerConnector(self.config)
         self.prediction_service = PredictionService(self.encryption_service)
         if config['REGISTRATION_ENABLE']:
@@ -55,19 +55,6 @@ class DataOwner:
     def _get_register_data(self):
         return {'id': self.client_id}
 
-    @optimized_collection_parameter(optimization=np.asarray, active=True)
-    def step(self, step_data):
-        """
-        TODO: POdría evaluarse la posibilidad de que el federated trainer indique cuando evaluar una prediccion local
-        :param encrypted_model:
-        :return:
-        """
-        self.model.gradient_step(step_data["gradient"], float(self.config['ETA']))
-        if step_data["evaluate_model"]:
-            y_test = [] # TODO: De donde sale esto??
-            prediction = self.model.predict(self.model.X, y_test)
-            self._evaluate_prediction(prediction)
-
     def get_data_owner_register_number(self):
         return self.register_number
 
@@ -80,20 +67,40 @@ class DataOwner:
         self.data_loader.load_data(filename)
         return filename is not None
 
-    def _evaluate_prediction(self, prediction_request):
+    @optimized_collection_parameter(optimization=np.asarray, active=True)
+    def step(self, step_data):
+        """
+        TODO: POdría evaluarse la posibilidad de que el federated trainer indique cuando evaluar una prediccion local
+        :param encrypted_model:
+        :return:
+        """
+        self.model.gradient_step(step_data["gradient"], float(self.config['ETA']))
+        if step_data["evaluate_model"]:
+            y_test = [] # TODO: De donde sale esto??
+            prediction = self.model.predict(self.model.X, y_test)
+            # model_public_key
+            model_public_key = None
+            model_id = self.model.id
+            self._evaluate_prediction(prediction, model_id, model_public_key)
+
+    def _evaluate_prediction(self, encrypted_prediction, model_id, model_public_key):
         """
         prediction: values + model_buyer_id
 
-        :param prediction_request:
+        :param encrypted_prediction:
         :return:
         """
         prediction_data = {
-            "encrypted_prediction": prediction_request,
-            "public_key": self.encryption_service.get_public_key(),
+            "linked_model": self.model,
+            "encrypted_prediction": encrypted_prediction,
+            "model": {
+                "public_key": model_public_key,
+                "id": model_id
+            }
         }
-        # Model +  PK Model owner
-        self.prediction_service.add(prediction_request)
-        self.federated_trainer_connector.send_prediction(prediction_data)
+        # Model + PK Model owner
+        prediction = self.prediction_service.add(prediction_data)
+        self.federated_trainer_connector.send_prediction(prediction)
 
     def get_predictions(self):
         return self.prediction_service.get()
@@ -102,7 +109,7 @@ class DataOwner:
         return self.prediction_service.get(prediction_id)
 
     def check_prediction_consistency(self, prediction_id, prediction_data):
-        self.prediction_service.check_consistency(prediction_id, prediction_data)
+        return self.prediction_service.check_consistency(prediction_id, prediction_data)
 
 
 class DataOwnerFactory:

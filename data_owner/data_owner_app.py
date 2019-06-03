@@ -151,7 +151,7 @@ def get_predictions():
     return jsonify(data_owner.get_predictions())
 
 
-@app.route('/predictions', methods=['PATCH'])
+@app.route('/predictions/{prediction_id}', methods=['PATCH'])
 def patch_predictions(prediction_id):
     logging.info("check_prediction_consistency prediction {}".format(prediction_id))
     data = request.get_json()

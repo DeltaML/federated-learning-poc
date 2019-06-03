@@ -11,6 +11,15 @@ from federated_trainer.service.decorators import serialize_encrypted_server_data
 from federated_trainer.service.model_buyer_connector import ModelBuyerConnector
 
 
+class GlobalModel:
+    def __init__(self, buyer_id, buyer_host, model_id, public_key, model_type):
+        self.buyer_id = buyer_id
+        self.model_id = model_id
+        self.buyer_host = buyer_host
+        self.public_key = public_key
+        self.model_type = model_type
+
+
 class FederatedTrainer:
     def __init__(self, encryption_service, config):
         self.data_owners = {}
@@ -20,6 +29,7 @@ class FederatedTrainer:
         self.data_owner_connector = DataOwnerConnector(self.config["DATA_OWNER_PORT"], encryption_service, self.active_encryption)
         self.model_buyer_connector = ModelBuyerConnector(self.config["MODEL_BUYER_PORT"])
         self.linked_data_owners = {}
+        self.global_models = {}
 
     def register_data_owner(self, data_owner_data):
         """
@@ -36,9 +46,8 @@ class FederatedTrainer:
     def send_requirements_to_data_owner(self, data):
         return self.data_owner_connector.send_requirements_to_data_owners(list(self.data_owners.values()), data)
 
-    def async_server_processing(self, remote_address, model_id, func, *args):
+    def async_server_processing(self, func, *args):
         logging.info("process_in_background...")
-        self.model_buyer_connector.set_remote_buyer_data(remote_address, model_id)
         result = func(*args)
         self.model_buyer_connector.send_result(result)
 
@@ -46,7 +55,8 @@ class FederatedTrainer:
         Thread(target=self.async_server_processing, args=self._build_async_processing_data(data, remote_address)).start()
 
     def _build_async_processing_data(self, data, remote_address):
-        return remote_address, data['model_id'], self.federated_learning_wrapper, data
+        data["remote_address"] = remote_address
+        return self.federated_learning_wrapper, data
 
     def _link_data_owners_to_model_training(self, data):
         owners_with_data = self.send_requirements_to_data_owner(data)
@@ -57,12 +67,17 @@ class FederatedTrainer:
                     self.linked_data_owners[data['model_id']] = []
                 self.linked_data_owners[data['model_id']].append(self.data_owners[data_owner_key])
 
-
     @normalize_optimized_response(active=True)
     def federated_learning(self, data):
         logging.info("Init federated_learning")
         n_iter = self.config["MAX_ITERATIONS"]
         model_id = data['model_id']
+        self.global_models[model_id] = GlobalModel(model_id=model_id,
+                                                   buyer_id=data["buyer_id"],
+                                                   buyer_host=data["remote_address"],
+                                                   public_key=data["public_key"],
+                                                   model_type=data['requirements']['model_type'])
+        # TODO: Link this in global model [1 Global Model -> N data owners linked]
         self._link_data_owners_to_model_training(data)
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
         self.encryption_service.set_public_key(data["public_key"])
@@ -81,7 +96,7 @@ class FederatedTrainer:
         return self.federated_learning(data)
 
     def send_global_model(self, weights, model_id):
-        """Encripta y envia el nombre del modelo a ser entrenado"""
+        """Encripta y envia el modelo a ser entrenado"""
         logging.info("Send global models")
         self.data_owner_connector.send_gradient_to_data_owners(self.linked_data_owners[model_id], weights)
 
@@ -107,3 +122,10 @@ class FederatedTrainer:
         """obtiene el nombre del modelo a ser entrenado"""
         logging.info("get_trained_models")
         return self.data_owner_connector.get_data_owners_model(self.linked_data_owners[model_id])
+
+    def send_prediction_to_buyer(self, data):
+        """
+        :param data:
+        :return:
+        """
+        self.model_buyer_connector.send_encrypted_prediction(self.global_models[data["model_id"]], data)

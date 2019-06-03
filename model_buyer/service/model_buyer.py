@@ -26,8 +26,10 @@ class ModelBuyer:
         data_requirements = requirements["data_requirements"]
         model_type = requirements["model_type"]
         model = OrderedModel(data_requirements, model_type)
+        # TODO: Refactor to connector
         data = dict(requirements=requirements,
                     model_id=model.id,
+                    model_buyer_id=self.id,
                     public_key=self.encryption_service.get_public_key())
         response = requests.post(self.config["server_register_url"], json=data)
         response.raise_for_status()
