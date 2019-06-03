@@ -1,8 +1,8 @@
 import requests
 import numpy as np
 import json
-from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument
-from federated_trainer.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient
+from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument, optimized_dict_collection_response
+from federated_trainer.src.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient
 from commons.utils.async_thread_pool_executor import AsyncThreadPoolExecutor
 
 
@@ -18,9 +18,9 @@ class DataOwnerConnector:
         args = [self._build_data(data_owner, weights) for data_owner in data_owners]
         self.async_thread_pool.run(executable=self._send_gradient, args=args)
 
-    @optimized_collection_response(optimization=np.asarray, active=True)
-    def get_update_from_data_owners(self, data_owners, model_type, public_key):
-        args = [(data_owner, model_type, public_key) for data_owner in data_owners]
+    @optimized_dict_collection_response(optimization=np.asarray, active=True)
+    def get_update_from_data_owners(self, data_owners, model_type, public_key, model_id):
+        args = [(data_owner, model_type, public_key, model_id) for data_owner in data_owners]
         return self.async_thread_pool.run(executable=self._get_update_from_data_owner, args=args)
 
     @optimized_collection_response(optimization=np.asarray, active=True)
@@ -42,11 +42,12 @@ class DataOwnerConnector:
         :param data:
         :return:
         """
-        data_owner, model_type, public_key = data
+        data_owner, model_type, public_key, model_id = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
         payload = {"model_type": model_type, "public_key": public_key}
         response = requests.post(url, json=payload)
-        return response.json()
+        result = {'data_owner': data_owner.id, 'model_id': model_id, 'update': response.json()}
+        return result
 
     @serialize_encrypted_server_gradient(schema=json.dumps)
     def _send_gradient(self, data):

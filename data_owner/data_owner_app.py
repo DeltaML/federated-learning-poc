@@ -99,7 +99,6 @@ def process_weights():
     data = request.get_json()
     # model type
     model_type = data['model_type']
-    #requirements = data['requirements']
     # encrypted_model
     return data_owner.process(model_type, data["public_key"])
 

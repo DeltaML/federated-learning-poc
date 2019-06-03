@@ -68,6 +68,7 @@ class DataOwner:
         self.data_loader.load_data(filename)
         return filename is not None
 
+
 class DataOwnerFactory:
     @classmethod
     def create_data_owner(cls, name, data_loader, encryption_service):

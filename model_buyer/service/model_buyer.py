@@ -29,9 +29,11 @@ class ModelBuyer:
         data_requirements = requirements["data_requirements"]
         model_type = requirements["model_type"]
         model = OrderedModel(data_requirements, model_type)
+        X_test, y_test = self.data_loader.get_sub_set()
         data = dict(requirements=requirements,
                     model_id=model.id,
-                    public_key=self.public_key.n)
+                    public_key=self.public_key.n,
+                    test_data=[X_test.tolist(), y_test.tolist()])
         response = requests.post(self.config["server_register_url"], json=data)
         response.raise_for_status()
         model.request_data = data
@@ -58,8 +60,8 @@ class ModelBuyer:
         self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
 
     def _update_model(self, model_id, data, status):
-        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.private_key, data) if self.config[
-            "active_encryption"] else data
+        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.private_key, data['model']) if self.config[
+            "active_encryption"] else data['model']
         model = self.get_model(model_id)
         model.set_weights(weights)
         model.status = status

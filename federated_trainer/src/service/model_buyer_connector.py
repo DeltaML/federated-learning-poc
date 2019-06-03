@@ -20,5 +20,5 @@ class ModelBuyerConnector:
     def send_partial_result(self, result):
         url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, self.model_id)
         logging.info("url {}".format(url))
-        logging.info("PArtials {}".format(result))
-        requests.patch(url, json=result.tolist())
+        logging.info("Partials {}".format(result))
+        requests.patch(url, json=result)

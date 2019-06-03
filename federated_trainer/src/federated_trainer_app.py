@@ -3,7 +3,7 @@ import os
 from flask import Flask, request, jsonify
 
 from commons.encryption.encryption_service import EncryptionService
-from federated_trainer.service.federated_trainer import FederatedTrainer
+from federated_trainer.src.service.federated_trainer import FederatedTrainer
 
 from logging.config import dictConfig
 
