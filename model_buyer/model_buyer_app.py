@@ -1,8 +1,10 @@
 import logging
 import os
+import random
 from logging.config import dictConfig
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
@@ -14,7 +16,7 @@ dictConfig(logging_config)
 
 def create_app():
     # create and configure the app
-    flask_app = Flask(__name__)
+    flask_app = Flask(__name__, static_folder='ui/build/')
     # ensure the instance folder exists
     try:
         os.makedirs(flask_app.instance_path)
@@ -30,7 +32,7 @@ def build_data_loader():
 
 
 app = create_app()
-
+CORS(app)
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
@@ -40,7 +42,7 @@ data_loader = build_data_loader()
 model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
 model_training_id = []
 
-## TODO: Refactor
+# TODO: Refactor
 def get_serialized_model(model):
     return {"requirements": model.requirements,
             "model": {"id": model.id,
@@ -52,7 +54,9 @@ def get_serialized_model(model):
 
 
 def get_serialized_prediction(prediction):
-    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse}
+    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse,
+            "model": get_serialized_model(prediction.model)}
+
 
 @app.errorhandler(Exception)
 def handle_error(error):
@@ -67,6 +71,16 @@ def handle_error(error):
         }
     }
     return jsonify(response), status_code
+
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.route('/model', methods=['POST'])
@@ -131,4 +145,8 @@ def load_dataset():
 
 @app.route('/ping', methods=['POST'])
 def ping():
-    return jsonify("pong")
+    response = {
+        "values": [1, 2, 3],
+        "MSE": random.randint(1, 2)
+    }
+    return jsonify(response)
