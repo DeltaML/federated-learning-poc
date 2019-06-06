@@ -41,7 +41,7 @@ class FederatedTrainer:
         logging.info("Register data owner with {}".format(data_owner_data))
         new_data_owner = DataOwnerInstance(data_owner_data)
         self.data_owners[new_data_owner.id] = new_data_owner
-        return {'number': len(self.data_owners)}
+        return {'data_owner_id': len(self.data_owners) - 1}
 
     def send_requirements_to_data_owner(self, data):
         return self.data_owner_connector.send_requirements_to_data_owners(list(self.data_owners.values()), data)

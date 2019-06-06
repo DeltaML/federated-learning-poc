@@ -1,23 +1,5 @@
-config = {
-    'FEDERATED_TRAINER_HOST': "http://cte_federated_trainer:8080",
-    'key_length': 1024,
-    'port': 9090,
-    'active_encryption': False,
-    'DATASETS_DIR': "./dataset/"
-}
-
-logging_config = {
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-}
+FEDERATED_TRAINER_HOST = "http://cte_federated_trainer:8080"
+KEY_LENGTH = 1024
+PORT = 9090
+ACTIVE_ENCRYPTION = False
+DATASETS_DIR = "./dataset"

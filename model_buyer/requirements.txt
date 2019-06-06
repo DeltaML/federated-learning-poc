@@ -5,3 +5,4 @@ phe
 numpy
 sklearn
 pandas
+flask-cors
