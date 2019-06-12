@@ -25,11 +25,12 @@ class ModelBuyer:
         """
         data_requirements = requirements["data_requirements"]
         model_type = requirements["model_type"]
-        model = OrderedModel(data_requirements, model_type)
         X_test, y_test = self.data_loader.get_sub_set()
+        model = OrderedModel(data_requirements, model_type, X_test)
         model.request_data = dict(requirements=requirements,
                                   model_id=model.id,
                                   model_buyer_id=self.id,
+                                  weights=model.get_weights(),
                                   public_key=self.encryption_service.get_public_key(),
                                   test_data=[X_test.tolist(), y_test.tolist()])
         self.federated_trainer_connector.send_model_order(model.request_data)
@@ -77,9 +78,10 @@ class ModelBuyer:
         model = self.get_model(model_id)
         if not model:
             raise OrderedModelNotFoundException(model_id)
-
+        # TODO: Check this x_test
         x_test, y_test = self.data_loader.get_sub_set()
         prediction = model.predict(x_test, y_test)
+        prediction.model = model
         self.predictions.add(prediction)
         return prediction
 

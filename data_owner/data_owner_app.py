@@ -39,16 +39,11 @@ def create_app():
     return flask_app
 
 
-def build_data_loader(config):
-    data_loader = DataLoader(config["DATASETS_DIR"])
-    return data_loader
-
-
 # Global variables
 app = create_app()
 
 
-data_loader = build_data_loader(app.config)
+data_loader = DataLoader(app.config["DATASETS_DIR"])
 encryption_service = EncryptionService()
 encryption_service.generate_key_pair(app.config["KEY_LENGTH"])
 

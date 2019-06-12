@@ -18,6 +18,7 @@ class EncryptionService:
         :return:
         """
         self.public_key, self.private_key = self.homomorphic_encryption.generate_key_pair(key_length=key_length)
+        return self.public_key, self.private_key
 
     def get_public_key(self):
         """

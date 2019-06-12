@@ -49,7 +49,7 @@ class DataOwner:
         :return:
         """
         response = self.federated_trainer_connector.register(self._get_register_data())
-        self.register_number = int(response['number']) - 1
+        self.register_number = int(response['data_owner_id'])
         logging.info("Register Number" + str(self.register_number))
 
     def _get_register_data(self):

@@ -22,5 +22,6 @@ class FederatedTrainerConnector:
     def send_prediction(self, prediction):
         server_register_url = self.federated_trainer_host + "/prediction"
         logging.info("Send prediction")
-        response = requests.post(server_register_url, json=prediction.get_data()).raise_for_status()
+        response = requests.post(server_register_url, json=prediction.get_data())
+        response.raise_for_status()
         return response.json()
