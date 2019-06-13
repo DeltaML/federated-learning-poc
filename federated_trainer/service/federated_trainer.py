@@ -100,19 +100,14 @@ class FederatedTrainer:
                 self.update_data_owners_contribution(updates, averaged_updates, owners, validator, X_test, y_test, model_type)
             averaged_updates = self.federated_averaging(updates, model_id)
             self.send_global_model(averaged_updates, model_id)
-            #models = self.get_trained_models(model_id)
-            # Sends partial result to model buyer every n_iter_partial_res iterations
             if (i % n_iter_partial_res) == 0:
                 contribution = validator.get_data_owners_contribution()
                 self.send_partial_result_to_model_buyer(averaged_updates, model_type, X_test, y_test, contribution, model_id)
-        return {'model': averaged_updates, 'model_id': model_id}#, 'mse': mse, 'contributions': contributions} #averaged_updates  # self.federated_averaging(models, model_id)
+        return {'model': averaged_updates, 'model_id': model_id}
 
     def update_data_owners_contribution(self, updates, averaged_updates, owners, validator, X_test, y_test, model_type):
         for i in range(len(updates)):
             validator.update_data_owner_contribution(averaged_updates, updates[i], owners[i], X_test, y_test, model_type)
-
-    #def validate_against_data_owners_folds(self, updates, model_type):
-
 
     def validate_against_model_buyer_test_data(self, updates, model_type, X_test, y_test):
         partial_model = ModelFactory.get_model(model_type)()

@@ -4,6 +4,7 @@ from threading import Thread
 from model_buyer.exceptions.exceptions import OrderedModelNotFoundException
 from model_buyer.model.ordered_model import OrderedModel, OrderedModelStatus
 from model_buyer.service.federated_trainer_connector import FederatedTrainerConnector
+import numpy as np
 
 
 class ModelBuyer:
@@ -57,11 +58,12 @@ class ModelBuyer:
         self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
 
     def _update_model(self, model_id, data, status):
-        weights = self.encryption_service.decrypt_and_deserizalize_collection(self.encryption_service.get_private_key(),
-                                                                              data['model']) if self.config[
-            "active_encryption"] else data['model']
+        weights = self.encryption_service.decrypt_and_deserizalize_collection(
+            self.encryption_service.get_private_key(),
+            data['model']
+        ) if self.config["ACTIVE_ENCRYPTION"] else data['model']
         model = self.get_model(model_id)
-        model.set_weights(weights)
+        model.set_weights(np.asarray(weights))
         model.status = status
         return model
 

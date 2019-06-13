@@ -74,8 +74,8 @@ class DataOwner:
         :param encrypted_model:
         :return:
         """
-        self.model.gradient_step(step_data["gradient"], float(self.config['ETA']))
-        if step_data["evaluate_model"]:
+        self.model.gradient_step(step_data, float(self.config['ETA']))
+        if False:
             y_test = [] # TODO: De donde sale esto??
             prediction = self.model.predict(self.model.X, y_test)
             # model_public_key

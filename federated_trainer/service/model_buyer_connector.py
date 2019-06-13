@@ -8,7 +8,7 @@ class ModelBuyerConnector:
         self.model_buyer_port = model_buyer_port
         self.remote_address = "localhost"
 
-    def send_result(self, result, model_id):
+    def send_result(self, result):
         url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, result['model_id'])
         logging.info("url {}".format(url))
         requests.put(url, json=result)
