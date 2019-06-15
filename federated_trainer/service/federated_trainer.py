@@ -114,9 +114,9 @@ class FederatedTrainer:
         partial_model.set_weights(updates)
         return partial_model.predict(X_test, y_test).mse
 
-    def send_partial_result_to_model_buyer(self, updates, model_type, X_test, y_test, contributions, model_id):
+    def send_partial_result_to_model_buyer(self, updates, model_type, X_test, y_test, mse_n, model_id):
         mse = self.validate_against_model_buyer_test_data(updates, model_type, X_test, y_test)
-        partial_result = {'model': updates.tolist(), 'mse': mse, 'contributions': contributions, 'model_id': model_id}
+        partial_result = {'model': updates.tolist(), 'mse': mse, 'mse_n': mse_n, 'model_id': model_id}
         self.model_buyer_connector.send_partial_result(partial_result)
 
     @serialize_encrypted_server_data(schema=json.dumps)

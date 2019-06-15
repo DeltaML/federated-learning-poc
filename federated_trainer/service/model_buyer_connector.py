@@ -6,7 +6,7 @@ class ModelBuyerConnector:
 
     def __init__(self, model_buyer_port):
         self.model_buyer_port = model_buyer_port
-        self.remote_address = "localhost"
+        self.remote_address = "localhost"  # TODO: SACAR ESTA NEGREADA
 
     def send_result(self, result):
         url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, result['model_id'])

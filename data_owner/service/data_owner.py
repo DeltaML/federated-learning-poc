@@ -41,7 +41,7 @@ class DataOwner:
         self.encryption_service.set_public_key(public_key)
         X, y = self.data_loader.get_sub_set()
         self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
-        return self.model.compute_gradient().tolist()
+        return self.client_id, self.model.compute_gradient().tolist()
 
     def register(self):
         """
@@ -75,32 +75,6 @@ class DataOwner:
         :return:
         """
         self.model.gradient_step(step_data, float(self.config['ETA']))
-        if False:
-            y_test = [] # TODO: De donde sale esto??
-            prediction = self.model.predict(self.model.X, y_test)
-            # model_public_key
-            model_public_key = None
-            model_id = self.model.id
-            self._evaluate_prediction(prediction, model_id, model_public_key)
-
-    def _evaluate_prediction(self, encrypted_prediction, model_id, model_public_key):
-        """
-        prediction: values + model_buyer_id
-
-        :param encrypted_prediction:
-        :return:
-        """
-        prediction_data = {
-            "linked_model": self.model,
-            "encrypted_prediction": encrypted_prediction,
-            "model": {
-                "public_key": model_public_key,
-                "id": model_id
-            }
-        }
-        # Model + PK Model owner
-        prediction = self.prediction_service.add(prediction_data)
-        self.federated_trainer_connector.send_prediction(prediction)
 
     def get_predictions(self):
         return self.prediction_service.get()
