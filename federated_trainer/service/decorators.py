@@ -9,6 +9,17 @@ def deserialize_encrypted_server_data():
     return wrap
 
 
+def deserialize_encrypted_server_data_2():
+    def wrap(f):
+        def wrapped_deserialize_encrypted_server_data(*args):
+            service = args[0]
+            result = f(*args)
+            result = service.encryption_service.get_deserialized_collection(result) if service.active_encryption else result
+            return result
+        return wrapped_deserialize_encrypted_server_data
+    return wrap
+
+
 def serialize_encrypted_server_gradient(schema):
     def wrap(f):
         def wrapped_serialize_encrypted_server_gradient(*args):

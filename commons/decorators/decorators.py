@@ -15,6 +15,7 @@ def optimized_collection_response(optimization, active=False):
         return wrapped_optimized_collection_response
     return wrap
 
+
 def optimized_dict_collection_response(optimization, active=False):
     def wrap(f):
         def wrapped_optimized_collection_response(*args):
@@ -25,6 +26,7 @@ def optimized_dict_collection_response(optimization, active=False):
             return updates, owners
         return wrapped_optimized_collection_response
     return wrap
+
 
 def normalize_optimized_collection_argument(active=False):
     def wrap(f):

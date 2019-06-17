@@ -3,7 +3,7 @@ def serialize_encrypted_data(encryption_service, schema, active=False):
         def wrapped_serialize_encrypted_data(*args):
             result = f(*args)
             encrypted_weights = encryption_service.get_serialized_encrypted_collection(result[1]) if active else result[1]
-            response = {'id': result[0], 'weights': encrypted_weights}
+            response = {'data_owner': result[0], 'update': encrypted_weights}
             return schema(response)
         return wrapped_serialize_encrypted_data
     return wrap

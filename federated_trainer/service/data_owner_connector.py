@@ -7,7 +7,7 @@ import requests
 
 from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument, optimized_dict_collection_response
 from commons.utils.async_thread_pool_executor import AsyncThreadPoolExecutor
-from federated_trainer.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient
+from federated_trainer.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient, deserialize_encrypted_server_data_2
 
 
 class DataOwnerConnector:
@@ -43,7 +43,6 @@ class DataOwnerConnector:
     @deserialize_encrypted_server_data()
     def _get_update_from_data_owner(self, data):
         """
-
         :param data:
         :return:
         """
@@ -51,8 +50,8 @@ class DataOwnerConnector:
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
         payload = {"model_type": model_type, "public_key": public_key}
         response = requests.post(url, json=payload)
-        result = {'data_owner': data_owner.id, 'model_id': model_id, 'update': response.json()}
-        return result
+        #result = {'data_owner': data_owner.id, 'model_id': model_id, 'update': response.json()}
+        return response.json()
 
     @serialize_encrypted_server_gradient(schema=json.dumps)
     def _send_gradient(self, data):
@@ -64,7 +63,7 @@ class DataOwnerConnector:
         url, payload = data
         requests.put(url, json=payload)
 
-    @deserialize_encrypted_server_data()
+    @deserialize_encrypted_server_data_2()
     def _get_data_owner_model(self, url):
         return requests.get(url).json()
 

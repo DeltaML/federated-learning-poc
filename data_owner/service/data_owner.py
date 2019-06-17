@@ -17,7 +17,6 @@ class DataOwner:
         :param data_loader:
         :param encryption_service:
         """
-
         self.client_id = str(uuid.uuid1())
         self.client_name = "data_owner {}".format(self.client_id)
         self.config = config
@@ -61,7 +60,7 @@ class DataOwner:
     def get_model(self):
         return self.model.weights.tolist()
 
-    def link_dataset_to_training_request(self, training_request_id, requirements):
+    def link_dataset_to_model_id(self, training_request_id, requirements):
         filename = self.data_loader.get_dataset_for_training(requirements)
         self.trainings[training_request_id] = filename
         self.data_loader.load_data(filename)
@@ -75,6 +74,7 @@ class DataOwner:
         :return:
         """
         self.model.gradient_step(step_data, float(self.config['ETA']))
+        logging.info("Model current weights {}".format(self.model.weights.tolist()))
 
     def get_predictions(self):
         return self.prediction_service.get()

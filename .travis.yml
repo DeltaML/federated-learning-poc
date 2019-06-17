@@ -22,7 +22,7 @@ install:
 script: true
   - coverage run --source=. -m unittest discover -s data_owner/test/
   - coverage run --source=. -m unittest discover -s federated_trainer/tests/
-  - pylint --output-format=text federated_trainer/src
+  - pylint --output-format=text federated_trainer/
 
 
 
