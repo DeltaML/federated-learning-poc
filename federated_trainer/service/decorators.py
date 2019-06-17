@@ -3,7 +3,8 @@ def deserialize_encrypted_server_data():
         def wrapped_deserialize_encrypted_server_data(*args):
             service = args[0]
             result = f(*args)
-            return service.encryption_service.get_deserialized_collection(result) if service.active_encryption else result
+            result['update'] = service.encryption_service.get_deserialized_collection(result['update']) if service.active_encryption else result['update']
+            return result
         return wrapped_deserialize_encrypted_server_data
     return wrap
 

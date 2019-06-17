@@ -1,9 +1,13 @@
-import requests
-import numpy as np
 import json
-from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument
-from federated_trainer.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient
+import logging
+
+import numpy as np
+import requests
+
+
+from commons.decorators.decorators import optimized_collection_response, normalize_optimized_collection_argument, optimized_dict_collection_response
 from commons.utils.async_thread_pool_executor import AsyncThreadPoolExecutor
+from federated_trainer.service.decorators import deserialize_encrypted_server_data, serialize_encrypted_server_gradient
 
 
 class DataOwnerConnector:
@@ -18,9 +22,9 @@ class DataOwnerConnector:
         args = [self._build_data(data_owner, weights) for data_owner in data_owners]
         self.async_thread_pool.run(executable=self._send_gradient, args=args)
 
-    @optimized_collection_response(optimization=np.asarray, active=True)
-    def get_update_from_data_owners(self, data_owners, model_type, public_key):
-        args = [(data_owner, model_type, public_key) for data_owner in data_owners]
+    @optimized_dict_collection_response(optimization=np.asarray, active=True)
+    def get_update_from_data_owners(self, data_owners, model_type, public_key, model_id):
+        args = [(data_owner, model_type, public_key, model_id) for data_owner in data_owners]
         return self.async_thread_pool.run(executable=self._get_update_from_data_owner, args=args)
 
     @optimized_collection_response(optimization=np.asarray, active=True)
@@ -31,7 +35,8 @@ class DataOwnerConnector:
 
     @optimized_collection_response(optimization=np.asarray, active=True)
     def send_requirements_to_data_owners(self, data_owners, data):
-        args = [("http://{}:{}/data/requeriments".format(data_owner.host, self.data_owner_port), data) for data_owner in data_owners]
+        args = [("http://{}:{}/data/requirements".format(data_owner.host, self.data_owner_port), data) for data_owner in
+                data_owners]
         results = self.async_thread_pool.run(executable=self._send_requirements_to_data_owner, args=args)
         return [result for result in results]
 
@@ -42,11 +47,12 @@ class DataOwnerConnector:
         :param data:
         :return:
         """
-        data_owner, model_type, public_key = data
+        data_owner, model_type, public_key, model_id = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
         payload = {"model_type": model_type, "public_key": public_key}
         response = requests.post(url, json=payload)
-        return response.json()
+        result = {'data_owner': data_owner.id, 'model_id': model_id, 'update': response.json()}
+        return result
 
     @serialize_encrypted_server_gradient(schema=json.dumps)
     def _send_gradient(self, data):
@@ -67,7 +73,24 @@ class DataOwnerConnector:
     def _build_data(self, data_owner, weights):
         return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": weights}
 
-    def _send_requirements_to_data_owner(self, data):
+    @staticmethod
+    def _send_requirements_to_data_owner(data):
         url, payload = data
         response = requests.post(url, json=payload, timeout=None)
         return response.json()
+
+    def send_encrypted_prediction(self, data_owner, encrypted_prediction):
+        """
+        {'model_id': model_id,
+         'prediction_id': prediction_id,
+         'encrypted_prediction': Data Owner encrypted prediction,
+         'public_key': Data Owner PK
+         }
+        :param data_owner:
+        :param encrypted_prediction:
+        :return:
+        """
+        url = "http://{}:{}/predictions/{}".format(data_owner.host, self.data_owner_port,
+                                                   encrypted_prediction["prediction_id"])
+        logging.info("Url {}".format(url))
+        requests.patch(url, json=encrypted_prediction)

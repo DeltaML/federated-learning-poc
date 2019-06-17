@@ -8,15 +8,29 @@ from flask_cors import CORS
 
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
-from model_buyer.config import config, logging_config
 from model_buyer.service.model_buyer import ModelBuyer
 
-dictConfig(logging_config)
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 
 def create_app():
     # create and configure the app
     flask_app = Flask(__name__, static_folder='ui/build/')
+    flask_app.config.from_pyfile('config.py')
     # ensure the instance folder exists
     try:
         os.makedirs(flask_app.instance_path)
@@ -26,7 +40,7 @@ def create_app():
 
 
 def build_data_loader():
-    data_loader = DataLoader(config['DATASETS_DIR'])
+    data_loader = DataLoader(app.config['DATASETS_DIR'])
     data_loader.load_data("data_test.csv")
     return data_loader
 
@@ -36,11 +50,12 @@ CORS(app)
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
-public_key, private_key = encryption_service.generate_key_pair(config["key_length"])
+public_key, private_key = encryption_service.generate_key_pair(app.config["KEY_LENGTH"])
 encryption_service.set_public_key(public_key.n)
 data_loader = build_data_loader()
-model_buyer = ModelBuyer(public_key, private_key, encryption_service, data_loader, config)
+model_buyer = ModelBuyer(encryption_service, data_loader, app.config)
 model_training_id = []
+
 
 # TODO: Refactor
 def get_serialized_model(model):
@@ -114,6 +129,13 @@ def get_models():
 def get_model(model_id):
     model = model_buyer.get_model(model_id)
     return jsonify(get_serialized_model(model)), 200
+
+
+@app.route('/transform', methods=['POST'])
+def transform_prediction():
+    logging.info("transform prediction from data owner")
+    model_buyer.transform_prediction(request.get_json())
+    return jsonify(200), 200
 
 
 @app.route('/prediction', methods=['POST'])
