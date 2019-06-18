@@ -6,14 +6,27 @@ from model_buyer.model.ordered_model import OrderedModel, OrderedModelStatus
 from model_buyer.service.federated_trainer_connector import FederatedTrainerConnector
 import numpy as np
 
+from model_buyer.utils.singleton import Singleton
 
-class ModelBuyer:
-    def __init__(self, encryption_service, data_loader, config):
+
+class ModelBuyer(metaclass=Singleton):
+
+    def __init__(self):
+        self.id = None
+        self.encryption_service = None
+        self.data_loader = None
+        self.config = None
+        self.federated_trainer_connector = None
+        self.models = None
+        self.predictions = None
+
+    def init(self, encryption_service, data_loader, config):
         self.id = str(uuid.uuid1())
         self.encryption_service = encryption_service
         self.data_loader = data_loader
         self.config = config
-        self.federated_trainer_connector = FederatedTrainerConnector(config)
+        if config:
+            self.federated_trainer_connector = FederatedTrainerConnector(config)
         # TODO: refactor this to DB
         self.models = set()
         self.predictions = set()

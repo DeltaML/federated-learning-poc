@@ -9,6 +9,7 @@ from data_owner.service.decorators import serialize_encrypted_data, deserialize_
 from commons.encryption.encryption_service import EncryptionService
 
 from flask import send_from_directory
+
 dictConfig({
     'version': 1,
     'formatters': {'default': {
@@ -95,8 +96,11 @@ def process_weights():
     """
     logging.info("Process weights")
     data = request.get_json()
+    # model type
+    model_type = data['model_type']
+    #requirements = data['requirements']
     # encrypted_model
-    return data_owner.process(data['model_type'], data["public_key"])
+    return data_owner.process(model_type, data["public_key"])
 
 
 @app.route('/step', methods=['PUT'])

@@ -5,10 +5,10 @@ from logging.config import dictConfig
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
 from model_buyer.service.model_buyer import ModelBuyer
+from model_buyer.resources import api
 
 dictConfig({
     'version': 1,
@@ -36,6 +36,7 @@ def create_app():
         os.makedirs(flask_app.instance_path)
     except OSError:
         pass
+
     return flask_app
 
 
@@ -44,17 +45,23 @@ def build_data_loader():
     data_loader.load_data("data_test.csv")
     return data_loader
 
-
 app = create_app()
+api.init_app(app)
+
 CORS(app)
 logging.info("Model Buyer is running")
 
 encryption_service = EncryptionService()
 public_key, private_key = encryption_service.generate_key_pair(app.config["KEY_LENGTH"])
 encryption_service.set_public_key(public_key.n)
-data_loader = build_data_loader()
-model_buyer = ModelBuyer(encryption_service, data_loader, app.config)
+data_loader = DataLoader(app.config['DATASETS_DIR'])
+model_buyer = ModelBuyer().init(encryption_service, data_loader, app.config)
 model_training_id = []
+
+
+def get_serialized_prediction(prediction):
+    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse,
+            "model": get_serialized_model(prediction.model)}
 
 
 # TODO: Refactor
@@ -66,11 +73,6 @@ def get_serialized_model(model):
                       "weights": model.get_weights()
                       }
             }
-
-
-def get_serialized_prediction(prediction):
-    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse,
-            "model": get_serialized_model(prediction.model)}
 
 
 @app.errorhandler(Exception)
@@ -96,39 +98,6 @@ def serve(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
-
-
-@app.route('/model', methods=['POST'])
-def make_order_model():
-    logging.info("Make new order")
-    data = request.get_json()
-    order = model_buyer.make_new_order_model(data)
-    return jsonify(order), 200
-
-
-@app.route('/model/<model_id>', methods=['PUT'])
-def update_model(model_id):
-    data = request.get_json()
-    model_buyer.finish_model(model_id, data)
-    return jsonify(data), 200
-
-
-@app.route('/model/<model_id>', methods=['PATCH'])
-def partial_update_model(model_id):
-    data = request.get_json()
-    model_buyer.update_model(model_id, data)
-    return jsonify(data), 200
-
-
-@app.route('/model', methods=['GET'])
-def get_models():
-    return jsonify([get_serialized_model(model) for model in model_buyer.models]), 200
-
-
-@app.route('/model/<model_id>', methods=['GET'])
-def get_model(model_id):
-    model = model_buyer.get_model(model_id)
-    return jsonify(get_serialized_model(model)), 200
 
 
 @app.route('/transform', methods=['POST'])
@@ -159,13 +128,14 @@ def get_prediction(prediction_id):
 @app.route('/dataset', methods=['POST'])
 def load_dataset():
     file = request.files.get('file')
+    filename = request.files.get('filename') or file.filename
     logging.info(file)
-    file.save('./dataset/data.csv')
+    file.save('./dataset/{}'.format(filename))
     file.close()
     return jsonify(200)
 
 
-@app.route('/ping', methods=['POST'])
+@app.route('/ping', methods=['GET'])
 def ping():
     response = {
         "values": [1, 2, 3],

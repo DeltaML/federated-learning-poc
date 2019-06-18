@@ -6,3 +6,4 @@ numpy
 sklearn
 pandas
 flask-cors
+flask-restplus
