@@ -76,6 +76,19 @@ class DataOwner:
         self.model.gradient_step(step_data, float(self.config['ETA']))
         logging.info("Model current weights {}".format(self.model.weights.tolist()))
 
+    def model_quality_metrics(self, model_type, weights):
+        """
+        Method used only by validator role. It doesn't use the model built from the data. It gets the model from
+        the federated trainer and use the local data to calculate quality metrics
+        :return: the model quality (currently measured with the MSE)
+        """
+        X_test, y_test = self.data_loader.get_sub_set()
+        self.model = self.model if self.model else ModelFactory.get_model(model_type)()
+        self.model.set_weights(weights)
+        mse = self.model.predict(X_test, y_test).mse
+        logging.info("Calculated mse: {}".format(mse))
+        return mse
+
     def get_predictions(self):
         return self.prediction_service.get()
 

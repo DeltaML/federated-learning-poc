@@ -132,7 +132,16 @@ def link_reqs_to_file():
     return jsonify({training_req_id: (data_owner.client_id, result)})
 
 
+@app.route('/model/metrics', methods=['POST'])
+def get_model_quality():
+    data = request.get_json()
+    #model_id = data["model_id"]
+    model_type = data["model_type"]
+    weights = data["global_model"]
+    return jsonify([data_owner.model_quality_metrics(model_type, weights)])
+
 # PREDICTIONS
+
 
 @app.route('/predictions/<prediction_id>', methods=['GET'])
 def get_prediction(prediction_id):

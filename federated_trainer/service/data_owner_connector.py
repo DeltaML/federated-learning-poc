@@ -23,21 +23,27 @@ class DataOwnerConnector:
         self.async_thread_pool.run(executable=self._send_gradient, args=args)
 
     @optimized_dict_collection_response(optimization=np.asarray, active=True)
-    def get_update_from_data_owners(self, data_owners, model_type, public_key, model_id):
+    def get_gradient_from_data_owners(self, data_owners, model_type, public_key, model_id):
         args = [(data_owner, model_type, public_key, model_id) for data_owner in data_owners]
         return self.async_thread_pool.run(executable=self._get_update_from_data_owner, args=args)
 
     @optimized_collection_response(optimization=np.asarray, active=True)
     def get_data_owners_model(self, data_owners):
         args = ["http://{}:{}/model".format(data_owner.host, self.data_owner_port) for data_owner in data_owners]
-        results = self.async_thread_pool.run(executable=self._get_data_owner_model, args=args)
+        results = self.async_thread_pool.run(executable=self._send_get_request_to_data_owner, args=args)
         return [result for result in results]
 
     @optimized_collection_response(optimization=np.asarray, active=True)
     def send_requirements_to_data_owners(self, data_owners, data):
         args = [("http://{}:{}/data/requirements".format(data_owner.host, self.data_owner_port), data) for data_owner in
                 data_owners]
-        results = self.async_thread_pool.run(executable=self._send_requirements_to_data_owner, args=args)
+        results = self.async_thread_pool.run(executable=self._send_post_request_to_data_owner, args=args)
+        return [result for result in results]
+
+    @optimized_collection_response(optimization=np.asarray, active=True)
+    def get_model_metrics_from_validators(self, validators, data):
+        args = [("http://{}:{}/model/metrics".format(validator.host, self.data_owner_port), data) for validator in validators]
+        results = self.async_thread_pool.run(executable=self._send_post_request_to_data_owner, args=args)
         return [result for result in results]
 
     @deserialize_encrypted_server_data()
@@ -64,7 +70,7 @@ class DataOwnerConnector:
         requests.put(url, json=payload)
 
     @deserialize_encrypted_server_data_2()
-    def _get_data_owner_model(self, url):
+    def _send_get_request_to_data_owner(self, url):
         return requests.get(url).json()
 
     # ---
@@ -73,7 +79,7 @@ class DataOwnerConnector:
         return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": weights}
 
     @staticmethod
-    def _send_requirements_to_data_owner(data):
+    def _send_post_request_to_data_owner(data):
         url, payload = data
         response = requests.post(url, json=payload, timeout=None)
         return response.json()

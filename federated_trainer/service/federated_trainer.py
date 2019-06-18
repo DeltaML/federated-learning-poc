@@ -35,6 +35,8 @@ class FederatedTrainer:
         self.data_owner_connector = DataOwnerConnector(self.config["DATA_OWNER_PORT"], encryption_service, self.active_encryption)
         self.model_buyer_connector = ModelBuyerConnector(self.config["MODEL_BUYER_PORT"])
         self.global_models = {}
+        self.n_iter = self.config["MAX_ITERATIONS"]
+        self.n_iter_partial_res = self.config["ITERS_UNTIL_PARTIAL_RESULT"]
 
     def register_data_owner(self, data_owner_data):
         """
@@ -87,22 +89,22 @@ class FederatedTrainer:
         :param linked_data_owners:
         :return: Two lists of data owners. The trainers and the validators-
         """
-        split_index = int(len(linked_data_owners) * 0.70) + 1
+        split_index = int(len(linked_data_owners) * 0.70)
         import random
         copy = linked_data_owners[:]
         random.shuffle(copy)
-        return copy[:split_index], copy[split_index:]
+        local_trainers, validators = copy[:split_index], copy[split_index:]
+        logging.info("LocalTrainers: {}".format(list(map(lambda x: x.id, local_trainers))))
+        logging.info("Validators: {}".format(list(map(lambda x: x.id, validators))))
+        return local_trainers, validators
 
     @normalize_optimized_response(active=True)
     def federated_learning(self, data):
         logging.info("Init federated_learning")
-        n_iter = self.config["MAX_ITERATIONS"]
-        n_iter_partial_res = self.config["ITERS_UNTIL_PARTIAL_RESULT"]
         model_id = data['model_id']
         linked_data_owners = self._link_data_owners_to_model(data)
         local_trainers, validators = self.split_data_owners(linked_data_owners)
-        model = ModelFactory.get_model(data["requirements"]["model_type"])()
-        model.set_weights(data["model"])
+        model = self.initialize_global_model(data)
         self.global_models[model_id] = GlobalModel(model_id=model_id,
                                                    buyer_id=data["model_buyer_id"],
                                                    buyer_host=data["remote_address"],
@@ -111,32 +113,33 @@ class FederatedTrainer:
                                                    local_trainers=local_trainers,
                                                    validators=validators,
                                                    model=model)
-        logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
+        logging.info('Running distributed gradient aggregation for {:d} iterations'.format(self.n_iter))
         self.encryption_service.set_public_key(data["public_key"])
-        validator = FederatedValidator()
-        models = []
-        averaged_updates = None
-        for i in range(1, n_iter+1):
-            model = self.training_cicle(self.global_models[model_id], averaged_updates, n_iter_partial_res, i)
-
+        for i in range(1, self.n_iter+1):
+            model = self.training_cicle(self.global_models[model_id], self.n_iter_partial_res, i)
         return {'model': model, 'model_id': model_id}
 
-    def training_cicle(self, model_data, averaged_updates, n_iter_partial_res, i):
-        gradients, owners = self.get_updates(model_data)
+    def initialize_global_model(self, data):
+        model = ModelFactory.get_model(data["requirements"]["model_type"])()
+        model.set_weights(data["model"])
+        return model
+
+    def training_cicle(self, model_data, n_iter_partial_res, i):
+        gradients, owners = self.get_gradients(model_data)
         print("Updates", gradients)
         print("DataOwners", owners)
         #if i > 1:
             #self.update_data_owners_contribution(updates, averaged_updates, owners, validator, X_test, y_test, model_type)
         avg_gradient = self.federated_averaging(gradients, model_data)
-        self.send_global_model(avg_gradient, model_data)
+        self.send_avg_gradient(avg_gradient, model_data)
         #if (i % n_iter_partial_res) == 0:
             #contribution = validator.get_data_owners_contribution()
             #self.send_partial_result_to_model_buyer(averaged_updates, model_type, X_test, y_test, contribution, model_id)
         #models = self.get_trained_models(model_data)
         model_data.model.gradient_step(avg_gradient, 1.5)
+        print("Validators MSEs: {}".format(self.get_model_metrics_from_validators(model_data)))
         print("Model {}".format(model_data.model.weights))
         return model_data.model.weights
-
 
     def update_data_owners_contribution(self, updates, averaged_updates, owners, validator, X_test, y_test, model_type):
         for i in range(len(updates)):
@@ -156,24 +159,28 @@ class FederatedTrainer:
     def federated_learning_wrapper(self, data):
         return self.federated_learning(data)
 
-    def send_global_model(self, weights, model_data):
-        """Encripta y envia el modelo a ser entrenado"""
-        logging.info("Send global models")
-        self.data_owner_connector.send_gradient_to_data_owners(model_data.local_trainers, weights)
-
-    def get_updates(self, model_data):
+    def send_avg_gradient(self, gradient, model_data):
         """
-        :param model_type:
-        :param public_key:
-        :param model_id
-        :return:
+        Sends the average gradient back to the data owners for a new gradient step.
+        :param gradient: The average of the gradients received by the data owners.
+        :param model_data: wrapper with data related to the current model training.
+        :return: Nothing
+        """
+        logging.info("Send global models")
+        self.data_owner_connector.send_gradient_to_data_owners(model_data.local_trainers, gradient)
+
+    def get_gradients(self, model_data):
+        """
+        :param model_data: wrapper with data related to the current model training.
+        :return: the gradients calculated after a gradient descent step in the data owners, and the data owners that
+        performed such calculation.
         """
         model_type = model_data.model_type
         model_id = model_data.model_id
         public_key = model_data.public_key
         local_trainers = model_data.local_trainers
-        updates, owners = self.data_owner_connector.get_update_from_data_owners(local_trainers, model_type, public_key, model_id)
-        return updates, owners
+        gradients, owners = self.data_owner_connector.get_gradient_from_data_owners(local_trainers, model_type, public_key, model_id)
+        return gradients, owners
 
     def federated_averaging(self, updates, model_data):
         """
@@ -189,6 +196,10 @@ class FederatedTrainer:
         """obtiene el nombre del modelo a ser entrenado"""
         logging.info("get_trained_models")
         return self.data_owner_connector.get_data_owners_model(model_data.local_trainers)
+
+    def get_model_metrics_from_validators(self, model_data):
+        data = {"global_model": model_data.model.weights.tolist(), "model_type": model_data.model_type}
+        return self.data_owner_connector.get_model_metrics_from_validators(model_data.validators, data)
 
     def send_prediction_to_buyer(self, data):
         """

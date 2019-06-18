@@ -1,4 +1,4 @@
-FEDERATED_TRAINER_HOST = "http://localhost:8080"
+FEDERATED_TRAINER_HOST = "http://cte_federated_trainer:8080"
 KEY_LENGTH = 1024
 PORT = 9090
 ACTIVE_ENCRYPTION = False
