@@ -132,11 +132,10 @@ class FederatedTrainer:
             #self.update_data_owners_contribution(updates, averaged_updates, owners, validator, X_test, y_test, model_type)
         avg_gradient = self.federated_averaging(gradients, model_data)
         self.send_avg_gradient(avg_gradient, model_data)
-        #if (i % n_iter_partial_res) == 0:
-            #contribution = validator.get_data_owners_contribution()
-            #self.send_partial_result_to_model_buyer(averaged_updates, model_type, X_test, y_test, contribution, model_id)
-        #models = self.get_trained_models(model_data)
         model_data.model.gradient_step(avg_gradient, 1.5)
+        if (i % self.n_iter_partial_res) == 0:
+            self.send_partial_result_to_model_buyer(model_data)
+        #models = self.get_trained_models(model_data)
         print("Validators MSEs: {}".format(self.get_model_metrics_from_validators(model_data)))
         print("Model {}".format(model_data.model.weights))
         return model_data.model.weights
@@ -150,9 +149,9 @@ class FederatedTrainer:
         partial_model.set_weights(updates)
         return partial_model.predict(X_test, y_test).mse
 
-    def send_partial_result_to_model_buyer(self, updates, model_type, X_test, y_test, mse_n, model_id):
-        mse = self.validate_against_model_buyer_test_data(updates, model_type, X_test, y_test)
-        partial_result = {'model': updates.tolist(), 'mse': mse, 'mse_n': mse_n, 'model_id': model_id}
+    def send_partial_result_to_model_buyer(self, model_data):
+        #mse = self.validate_against_model_buyer_test_data(updates, model_type, X_test, y_test)
+        partial_result = {'model': model_data.model.weights.tolist(), 'model_id': model_data.model_id}
         self.model_buyer_connector.send_partial_result(partial_result)
 
     @serialize_encrypted_server_data(schema=json.dumps)
