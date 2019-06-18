@@ -9,28 +9,19 @@ from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
 from model_buyer.service.model_buyer import ModelBuyer
 from model_buyer.resources import api
-
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
+from model_buyer.config.logging_config import DEV_LOGGING_CONFIG, PROD_LOGGING_CONFIG
 
 
 def create_app():
     # create and configure the app
     flask_app = Flask(__name__, static_folder='ui/build/')
-    flask_app.config.from_pyfile('config.py')
+    if 'ENV_PROD' in os.environ and os.environ['ENV_PROD']:
+        flask_app.config.from_pyfile("config/prod/app_config.py")
+        dictConfig(PROD_LOGGING_CONFIG)
+    else:
+        dictConfig(DEV_LOGGING_CONFIG)
+        flask_app.config.from_pyfile("config/dev/app_config.py")
+
     # ensure the instance folder exists
     try:
         os.makedirs(flask_app.instance_path)
@@ -39,11 +30,6 @@ def create_app():
 
     return flask_app
 
-
-def build_data_loader():
-    data_loader = DataLoader(app.config['DATASETS_DIR'])
-    data_loader.load_data("data_test.csv")
-    return data_loader
 
 app = create_app()
 api.init_app(app)
@@ -56,38 +42,6 @@ public_key, private_key = encryption_service.generate_key_pair(app.config["KEY_L
 encryption_service.set_public_key(public_key.n)
 data_loader = DataLoader(app.config['DATASETS_DIR'])
 model_buyer = ModelBuyer().init(encryption_service, data_loader, app.config)
-model_training_id = []
-
-
-def get_serialized_prediction(prediction):
-    return {"prediction_id": prediction.id, "values": prediction.get_values(), "mse": prediction.mse,
-            "model": get_serialized_model(prediction.model)}
-
-
-# TODO: Refactor
-def get_serialized_model(model):
-    return {"requirements": model.requirements,
-            "model": {"id": model.id,
-                      "status": model.status.name,
-                      "type": model.model_type,
-                      "weights": model.get_weights()
-                      }
-            }
-
-
-@app.errorhandler(Exception)
-def handle_error(error):
-    message = [str(x) for x in error.args]
-    status_code = error.status_code
-    success = False
-    response = {
-        'success': success,
-        'error': {
-            'type': error.__class__.__name__,
-            'message': message
-        }
-    }
-    return jsonify(response), status_code
 
 
 # Serve React App
@@ -105,25 +59,6 @@ def transform_prediction():
     logging.info("transform prediction from data owner")
     model_buyer.transform_prediction(request.get_json())
     return jsonify(200), 200
-
-
-@app.route('/prediction', methods=['POST'])
-def make_prediction():
-    data = request.get_json()
-    prediction = model_buyer.make_prediction(data)
-    return jsonify(get_serialized_prediction(prediction)), 200
-
-
-@app.route('/prediction', methods=['GET'])
-def get_predictions():
-    return jsonify([get_serialized_prediction(prediction) for prediction in model_buyer.predictions]), 200
-
-
-@app.route('/prediction/<prediction_id>', methods=['GET'])
-def get_prediction(prediction_id):
-    prediction = model_buyer.get_prediction(prediction_id)
-    return jsonify(get_serialized_prediction(prediction)), 200
-
 
 @app.route('/dataset', methods=['POST'])
 def load_dataset():

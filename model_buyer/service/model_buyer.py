@@ -68,7 +68,7 @@ class ModelBuyer(metaclass=Singleton):
         :param data:
         :return:
         """
-        self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
+        return self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
 
     def _update_model(self, model_id, data, status):
         weights = self.encryption_service.decrypt_and_deserizalize_collection(

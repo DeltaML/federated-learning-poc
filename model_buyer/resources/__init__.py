@@ -3,6 +3,7 @@ from flask import jsonify, make_response
 from flask_restplus import Api
 
 from model_buyer.resources.models_resource import api as model_api
+from model_buyer.resources.predictions_resource import api as predictions_api
 
 api = Api(
     title='Model Buyer Api',
@@ -11,7 +12,9 @@ api = Api(
     doc='/doc/'
 )
 
+# Add apis to namespace
 api.add_namespace(model_api)
+api.add_namespace(predictions_api)
 
 
 @api.errorhandler(Exception)
