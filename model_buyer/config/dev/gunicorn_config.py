@@ -24,8 +24,9 @@ def max_workers():
 #       range.
 #
 
-PORT= 9090
-bind = '127.0.0.1:{}'.format(PORT)
+
+port = 9090
+bind = '127.0.0.1:{}'.format(port)
 backlog = 2048
 
 #
