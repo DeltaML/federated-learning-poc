@@ -4,10 +4,7 @@ from commons.operations_utils.functions import mean_square_error
 
 
 class LinearRegression(DeltaModel):
-    """Runs linear regression with local data or by gradient steps,
-    where gradient can be passed in.
-
-    """
+    """Runs linear regression with local data or by gradient steps, where gradient can be passed in."""
 
     def fit(self, n_iter, eta=0.01):
         """Linear regression for n_iter"""
