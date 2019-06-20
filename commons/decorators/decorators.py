@@ -15,11 +15,12 @@ def optimized_collection_response(optimization, active=False):
         return wrapped_optimized_collection_response
     return wrap
 
+
 def optimized_dict_collection_response(optimization, active=False):
     def wrap(f):
         def wrapped_optimized_collection_response(*args):
             result = f(*args)
-            updates = list(map(lambda x: x['update'], result))
+            updates = list(map(lambda x: x['update']['weights'], result))
             owners = list(map(lambda x: x['data_owner'], result))  # TODO: Add model_id
             updates = optimization(updates) if active else updates
             return updates, owners

@@ -86,7 +86,6 @@ class FederatedTrainer:
         model_type = data['requirements']['model_type']
         self._link_data_owners_to_model_training(data)
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
-        models = []
         validator = FederatedValidator()
         averaged_updates = None
         for i in range(1, n_iter+1):

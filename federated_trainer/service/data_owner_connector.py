@@ -47,7 +47,7 @@ class DataOwnerConnector:
         :param data:
         :return:
         """
-        data_owner, model_type, public_key, model_id = data
+        data_owner, model_type, model_id = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
         payload = {"model_type": model_type}
         response = requests.post(url, json=payload)

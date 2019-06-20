@@ -9,12 +9,12 @@ class ModelBuyerConnector:
         self.remote_address = "localhost"  # TODO: SACAR ESTA NEGREADA
 
     def send_result(self, result):
-        url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, result['model_id'])
+        url = "http://{}:{}/models/{}".format(self.remote_address, self.model_buyer_port, result['model_id'])
         logging.info("url {}".format(url))
         requests.put(url, json=result)
 
     def send_partial_result(self, result):
-        url = "http://{}:{}/model/{}".format(self.remote_address, self.model_buyer_port, result['model_id'])
+        url = "http://{}:{}/models/{}".format(self.remote_address, self.model_buyer_port, result['model_id'])
         logging.info("url {}".format(url))
         logging.info("Partials {}".format(result))
         requests.patch(url, json=result)
