@@ -116,7 +116,7 @@ class FederatedTrainer:
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(self.n_iter))
         self.encryption_service.set_public_key(data["public_key"])
         for i in range(1, self.n_iter+1):
-            model = self.training_cicle(self.global_models[model_id], self.n_iter_partial_res, i)
+            model = self.training_cicle(self.global_models[model_id], i)
         return {'model': model, 'model_id': model_id}
 
     def initialize_global_model(self, data):
@@ -124,33 +124,52 @@ class FederatedTrainer:
         model.set_weights(data["model"])
         return model
 
-    def training_cicle(self, model_data, n_iter_partial_res, i):
-        gradients, owners = self.get_gradients(model_data)
+    def training_cicle(self, model_data, i):
+        gradients, local_trainers = self.get_gradients(model_data)
         print("Updates", gradients)
-        print("DataOwners", owners)
-        #if i > 1:
-            #self.update_data_owners_contribution(updates, averaged_updates, owners, validator, X_test, y_test, model_type)
-        avg_gradient = self.federated_averaging(gradients, model_data)
-        self.send_avg_gradient(avg_gradient, model_data)
-        model_data.model.gradient_step(avg_gradient, 1.5)
+        print("DataOwners", local_trainers)
+        model_data.model, avg_gradient = self.update_model(model_data, gradients)
+        partial_models = [self.partial_update_model(model_data, gradients[:], local_trainers, i) for i in range(local_trainers)]
         if (i % self.n_iter_partial_res) == 0:
-            self.send_partial_result_to_model_buyer(model_data)
-        #models = self.get_trained_models(model_data)
-        print("Validators MSEs: {}".format(self.get_model_metrics_from_validators(model_data)))
-        print("Model {}".format(model_data.model.weights))
-        return model_data.model.weights
+            self.send_partial_result_to_model_buyer(model_data, partial_models)
+        global_MSE = self.get_model_metrics_from_validators(model_data)
+        partial_MSEs = self.get_model_metrics_from_validators()
+        print("Validators MSEs: {}".format(global_MSE))
+        print("Model {}".format(model_data.model))
+        self.send_avg_gradient(avg_gradient, model_data)
+        return model_data.model
 
-    def update_data_owners_contribution(self, updates, averaged_updates, owners, validator, X_test, y_test, model_type):
-        for i in range(len(updates)):
-            validator.update_data_owner_contribution(averaged_updates, updates[i], owners[i], X_test, y_test, model_type)
+    def update_model(self, model_data, gradients):
+        """
+        Updates the global model by performing a gradient descent step in the direction of the avg. gradient calculated
+        from the gradients received from the local trainers.
+        :param model_data: a wrapper that contains all the data related to a certain model in training.
+        :param gradients: a list of gradients to be averaged.
+        :return: the model updated after a step of gradient descent.
+        """
+        avg_gradient = self.federated_averaging(gradients, model_data)
+        model_data.model.gradient_step(avg_gradient, 1.5)
+        return model_data.model.weights, avg_gradient
 
-    def validate_against_model_buyer_test_data(self, updates, model_type, X_test, y_test):
-        partial_model = ModelFactory.get_model(model_type)()
-        partial_model.set_weights(updates)
-        return partial_model.predict(X_test, y_test).mse
+    def partial_update_model(self, model_data, gradients, trainers, filtered_index):
+        """
+        Performs the same operation as the update_model method, but leaves out of the update one of the local trainers
+        and its corresponding gradient. By doing that we can obtain a model that shows how better would have been to
+        leave that local trainer out of the training.
+        :param model_data: a wrapper that contains all the data related to a certain model in training.
+        :param gradients: a list of gradients to be averaged.
+        :param trainers: the list of the local trainers training local models and sending their gradients.
+        :param filtered_index: the filtered local trainer and corresponding gradient.
+        :return: a dictionary of models trained leaving different local trainers out. The filtered local trainers are
+        the keys of the dictionary.
+        """
+        gradients.pop(filtered_index)
+        trainer = trainers[filtered_index]
+        avg_gradient = self.federated_averaging(gradients, model_data)
+        model_data.model.gradient_step(avg_gradient, 1.5)
+        return {"local_trainer": trainer, "partial_model": model_data.model.weights}
 
-    def send_partial_result_to_model_buyer(self, model_data):
-        #mse = self.validate_against_model_buyer_test_data(updates, model_type, X_test, y_test)
+    def send_partial_result_to_model_buyer(self, model_data, partial_models):
         partial_result = {'model': model_data.model.weights.tolist(), 'model_id': model_data.model_id}
         self.model_buyer_connector.send_partial_result(partial_result)
 
