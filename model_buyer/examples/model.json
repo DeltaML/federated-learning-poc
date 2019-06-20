@@ -1,5 +1,6 @@
 {
   "model_type": "LINEAR_REGRESSION",
+  "testing_file_name": "file_0.csv",
   "data_requirements": {
     "features": {
       "list": [

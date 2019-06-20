@@ -14,7 +14,7 @@ features = api.model(name='Features', model={
 })
 
 target = api.model(name='Target', model={
-    'range': fields.List(fields.String, required=True, description='The model type'),
+    'range': fields.List(fields.Integer, required=True, description='The model type'),
     'desc': fields.List(fields.String, required=True, description='The model type')
 })
 
@@ -26,7 +26,8 @@ data_requirements = api.model(name='Data Requirements', model={
 
 requirements = api.model(name='Requirements', model={
     'model_type': fields.String(required=True, description='The model type'),
-    'data_requirements': fields.Nested(data_requirements, required=True, description='data_requirements')
+    'testing_file_name': fields.String(required=True, description='The name of the file to test'),
+    'data_requirements': fields.Nested(data_requirements, required=True, description='Data requirements')
 })
 
 model = api.model(name='Model', model={
@@ -59,7 +60,7 @@ class ModelResources(Resource):
     @api.marshal_with(ordered_model, code=201)
     @api.doc('Create order model')
     def post(self):
-        logging.info("Make new order")
+        logging.info("New order model")
         data = request.get_json()
         return model_buyer.make_new_order_model(data), 200
 

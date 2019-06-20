@@ -72,6 +72,13 @@ class DataLoader:
         """
         return self.X, self.y
 
+    def get_training_sub_set(self):
+        """
+        Returns the dataset loaded by self.load_data(filename) for testing.
+        :return: a tuple self.X (np.array of features) and self.y (np.array of target)
+        """
+        return self.X_test, self.y_test
+
     @staticmethod
     def load_random_data():
         logging.info("Loading data")

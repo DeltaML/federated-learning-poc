@@ -1,6 +1,8 @@
 version: '3'
 services:
   cte_federated_trainer:
+    environment:
+      - ENV_PROD=1
     build:
       context: ./
       dockerfile: './federated_trainer/Dockerfile'
@@ -10,6 +12,8 @@ services:
     networks:
       - backend
   cte_data_owner:
+    environment:
+      - ENV_PROD=1
     build:
       context: ./
       dockerfile: './data_owner/Dockerfile'
@@ -20,6 +24,8 @@ services:
     depends_on:
       - cte_federated_trainer
   cte_model_buyer:
+    environment:
+      - ENV_PROD=1
     build:
       context: ./
       dockerfile: './model_buyer/Dockerfile'

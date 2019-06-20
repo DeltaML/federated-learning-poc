@@ -1,3 +1,4 @@
+import os
 import logging
 import uuid
 from threading import Thread
@@ -39,14 +40,15 @@ class ModelBuyer(metaclass=Singleton):
         """
         data_requirements = requirements["data_requirements"]
         model_type = requirements["model_type"]
-        X_test, y_test = self.data_loader.get_sub_set()
-        model = OrderedModel(data_requirements, model_type, X_test)
+        file_name = requirements["testing_file_name"]
+        self.data_loader.load_data(file_name)
+        x_test, y_test = self.data_loader.get_sub_set()
+        model = OrderedModel(data_requirements, model_type, x_test)
         model.request_data = dict(requirements=requirements,
                                   model_id=model.id,
                                   model_buyer_id=self.id,
                                   weights=model.get_weights(),
-                                  public_key=self.encryption_service.get_public_key(),
-                                  test_data=[X_test.tolist(), y_test.tolist()])
+                                  test_data=[x_test.tolist(), y_test.tolist()])
         self.federated_trainer_connector.send_model_order(model.request_data)
         self.models.add(model)
         return {"requirements": model.requirements,
@@ -122,3 +124,8 @@ class ModelBuyer(metaclass=Singleton):
         }
         Thread(target=self.federated_trainer_connector.send_transformed_prediction,
                args=prediction_transformed).start()
+
+    def load_data_set(self, file, filename):
+        logging.info(file)
+        file.save(os.path.join(self.config.get("DATA_SETS_DIR"), filename))
+        file.close()

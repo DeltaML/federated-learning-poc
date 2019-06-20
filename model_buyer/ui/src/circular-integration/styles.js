@@ -1,17 +1,10 @@
-import green from "@material-ui/core/colors/green";
+import green from '@material-ui/core/colors/green';
 
 const styles = theme => ({
-    container: {
-        padding: 24
-    },
-    textField: {
-        marginLeft: theme.spacing.unit,
-        marginRight: theme.spacing.unit,
-        width: 500,
-    },
-      formControl: {
-        margin: theme.spacing.unit,
-        minWidth: 120,
+    root: {
+      display: 'flex',
+      alignItems: 'center',
+      margin: theme.spacing.unit,
     },
     wrapper: {
       margin: theme.spacing.unit,
@@ -38,9 +31,9 @@ const styles = theme => ({
       marginTop: -12,
       marginLeft: -12,
     },
-     input: {
+    input: {
       display: 'none',
     },
-});
+  });
 
-export default styles;
+  export default styles;

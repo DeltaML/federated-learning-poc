@@ -14,11 +14,10 @@ from commons.model.model_service import ModelFactory
 import numpy as np
 
 class GlobalModel:
-    def __init__(self, buyer_id, buyer_host, model_id, public_key, model_type):
+    def __init__(self, buyer_id, buyer_host, model_id, model_type):
         self.buyer_id = buyer_id
         self.model_id = model_id
         self.buyer_host = buyer_host
-        self.public_key = public_key
         self.model_type = model_type
 
 
@@ -82,18 +81,16 @@ class FederatedTrainer:
         self.global_models[model_id] = GlobalModel(model_id=model_id,
                                                    buyer_id=data["model_buyer_id"],
                                                    buyer_host=data["remote_address"],
-                                                   public_key=data["public_key"],
                                                    model_type=data['requirements']['model_type'])
         # TODO: Link this in global model [1 Global Model -> N data owners linked]
         model_type = data['requirements']['model_type']
         self._link_data_owners_to_model_training(data)
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(n_iter))
-        self.encryption_service.set_public_key(data["public_key"])
         models = []
         validator = FederatedValidator()
         averaged_updates = None
         for i in range(1, n_iter+1):
-            updates, owners = self.get_updates(model_type, data["public_key"], model_id)
+            updates, owners = self.get_updates(model_type, model_id)
             print("Updates", updates)
             print("DataOwners", owners)
             if i > 1:
@@ -128,14 +125,13 @@ class FederatedTrainer:
         logging.info("Send global models")
         self.data_owner_connector.send_gradient_to_data_owners(self.linked_data_owners[model_id], weights)
 
-    def get_updates(self, model_type, public_key, model_id):
+    def get_updates(self, model_type, model_id):
         """
         :param model_type:
-        :param public_key:
         :param model_id
         :return:
         """
-        updates, owners = self.data_owner_connector.get_update_from_data_owners(self.linked_data_owners[model_id], model_type, public_key, model_id)
+        updates, owners = self.data_owner_connector.get_update_from_data_owners(self.linked_data_owners[model_id], model_type, model_id)
         return updates, owners
 
     def federated_averaging(self, updates, model_id):

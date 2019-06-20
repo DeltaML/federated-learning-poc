@@ -29,6 +29,6 @@ class OrderedModel:
         return self.model.predict(x, y)
 
     def get_weights(self):
-        return self.model.weights.tolist()
+        return self.model.weights.tolist() if self.model else []
 
 

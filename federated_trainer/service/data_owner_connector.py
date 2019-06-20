@@ -23,8 +23,8 @@ class DataOwnerConnector:
         self.async_thread_pool.run(executable=self._send_gradient, args=args)
 
     @optimized_dict_collection_response(optimization=np.asarray, active=True)
-    def get_update_from_data_owners(self, data_owners, model_type, public_key, model_id):
-        args = [(data_owner, model_type, public_key, model_id) for data_owner in data_owners]
+    def get_update_from_data_owners(self, data_owners, model_type, model_id):
+        args = [(data_owner, model_type, model_id) for data_owner in data_owners]
         return self.async_thread_pool.run(executable=self._get_update_from_data_owner, args=args)
 
     @optimized_collection_response(optimization=np.asarray, active=True)
@@ -49,7 +49,7 @@ class DataOwnerConnector:
         """
         data_owner, model_type, public_key, model_id = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
-        payload = {"model_type": model_type, "public_key": public_key}
+        payload = {"model_type": model_type}
         response = requests.post(url, json=payload)
         result = {'data_owner': data_owner.id, 'model_id': model_id, 'update': response.json()}
         return result

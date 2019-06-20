@@ -8,13 +8,20 @@ import Select from '@material-ui/core/Select';
 import Client from '../utils/ClientApi'
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
+//TAble
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-
+// FIle upload imports
+import classNames from 'classnames';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Fab from '@material-ui/core/Fab';
+import CheckIcon from '@material-ui/icons/Check';
+import SaveIcon from '@material-ui/icons/Save';
+// Chars
 import {CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis,} from 'recharts';
 import model from './model'
 import styles from "./styles";
@@ -28,8 +35,57 @@ class RequirementsForm extends React.Component {
         weights: [],
         active_update: false,
         data_chart: [],
-        model: model
+        model: model,
+        loadStatus: {
+            loading: false,
+            success: false,
+        },
+        uploadedFile: null
     };
+
+    componentWillUnmount() {
+        clearTimeout(this.timer);
+    }
+
+    handleButtonClick = (event) => {
+        if (!this.state.loading) {
+            this.setState(
+                {
+                    success: false,
+                    loading: true,
+                },
+                () => {
+                    this.timer = setTimeout(() => {
+                        this.setState({
+                            loading: false,
+                            success: true,
+                        });
+                    }, 2000);
+                },
+            );
+        }
+    };
+
+    loadFile = (event) => {
+        let file = event.target.files[0];
+        if (file) {
+            let data = new FormData();
+            data.append('file', file);
+            data.append('filename', file.name)
+            this.setState({
+                uploadedFile: file,
+                uploadedFileName: file.name
+            });
+            console.log(data.get('file').size);
+            //console.log(Client.getClientId())
+            Client.sendFile({body: data}, res => {
+                if (res.status !== 200) {
+                    console.log("ERROR")
+                }
+            })
+        }
+    };
+
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -55,7 +111,7 @@ class RequirementsForm extends React.Component {
     };
 
     buildModel(state) {
-
+        state.model.file_name = state.uploadedFileName
         state.model.model_type = state.model_type
         return state.model
     }
@@ -105,11 +161,14 @@ class RequirementsForm extends React.Component {
 
     render() {
         const {classes} = this.props;
-
+        const {loading, success} = this.state.loadStatus;
+        const buttonClassname = classNames({
+            [classes.buttonSuccess]: success,
+        });
         return (
             <Grid container>
                 <Grid item container direction="column" xs={12} sm={6} lg={4} xl={3} className={classes.container}>
-                    <Paper  style={{padding: 24}}>
+                    <Paper style={{padding: 24}}>
                         <form noValidate autoComplete="off" onSubmit={this.handleSubmit}>
                             <Grid item xs>
                                 <TextField
@@ -149,6 +208,34 @@ class RequirementsForm extends React.Component {
                                 />
                             </Grid>
                             <Grid item xs style={{padding: 24}}>
+                                <div className={classes.root}>
+                                    <input accept="*/*" className={classes.input} id="contained-button-file" type="file"
+                                           onChange={this.loadFile}/>
+                                    <div className={classes.wrapper}>
+                                        <label htmlFor="contained-button-file">
+                                            <Fab color="primary" component="span" className={buttonClassname}
+                                                 onClick={this.handleButtonClick}>
+                                                {success ? <CheckIcon/> : <SaveIcon/>}
+                                            </Fab>
+                                        </label>
+                                        {loading && <CircularProgress size={68} className={classes.fabProgress}/>}
+                                    </div>
+                                    <div className={classes.wrapper}>
+                                        <label htmlFor="contained-button-file">
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                className={buttonClassname}
+                                                disabled={loading}
+                                                onClick={this.handleButtonClick}
+                                                component="span"
+                                            >
+                                                Load Dataset
+                                            </Button>
+                                        </label>
+                                        {loading && <CircularProgress size={24} className={classes.buttonProgress}/>}
+                                    </div>
+                                </div>
                                 <Button variant="contained"
                                         color="primary"
                                         type="submit">
@@ -214,7 +301,7 @@ class RequirementsForm extends React.Component {
 
 
 RequirementsForm.propTypes = {
-  classes: PropTypes.object.isRequired,
+    classes: PropTypes.object.isRequired,
 };
 
 
