@@ -1,16 +1,19 @@
 from commons.model.delta_model import DeltaModel
 from commons.model.prediction import Prediction
 from commons.operations_utils.functions import mean_square_error
-
+import numpy as np
 
 class LinearRegression(DeltaModel):
     """Runs linear regression with local data or by gradient steps, where gradient can be passed in."""
 
     def fit(self, n_iter, eta=0.01):
         """Linear regression for n_iter"""
+        cum_gradient = np.zeros(self.weights.shape[1])
         for _ in range(n_iter):
             gradient = self.compute_gradient()
             self.gradient_step(gradient, eta)
+            cum_gradient += gradient
+        return cum_gradient
 
     def gradient_step(self, gradient, eta=0.01):
         """Update the model with the given gradient"""

@@ -18,31 +18,45 @@ class DataOwnerConnector:
         self.encryption_service = encryption_service
         self.active_encryption = active_encryption
 
-    def send_gradient_to_data_owners(self, data_owners, weights):
-        args = [self._build_data(data_owner, weights) for data_owner in data_owners]
+    def send_gradient_to_data_owners(self, data_owners, gradient):
+        args = [self._build_data(data_owner, gradient) for data_owner in data_owners]
         self.async_thread_pool.run(executable=self._send_gradient, args=args)
 
     @optimized_dict_collection_response(optimization=np.asarray, active=True)
-    def get_gradient_from_data_owners(self, data_owners, model_type, public_key, model_id):
-        args = [(data_owner, model_type, public_key, model_id) for data_owner in data_owners]
+    def get_gradient_from_data_owners(self, model_data):
+        args = [
+            (trainer, model_data.model_type, model_data.model.weights, model_data.model_id)
+            for trainer in model_data.local_trainers
+        ]
         return self.async_thread_pool.run(executable=self._get_update_from_data_owner, args=args)
 
     @optimized_collection_response(optimization=np.asarray, active=True)
-    def get_data_owners_model(self, data_owners):
-        args = ["http://{}:{}/model".format(data_owner.host, self.data_owner_port) for data_owner in data_owners]
+    def get_data_owners_model(self, model_data):
+        args = [
+            "http://{}:{}/model".format(trainer.host, self.data_owner_port)
+            for trainer in model_data.local_trainers
+        ]
         results = self.async_thread_pool.run(executable=self._send_get_request_to_data_owner, args=args)
         return [result for result in results]
 
     @optimized_collection_response(optimization=np.asarray, active=True)
     def send_requirements_to_data_owners(self, data_owners, data):
-        args = [("http://{}:{}/data/requirements".format(data_owner.host, self.data_owner_port), data) for data_owner in
-                data_owners]
+        args = [
+            ("http://{}:{}/data/requirements".format(data_owner.host, self.data_owner_port), data)
+            for data_owner in data_owners
+        ]
         results = self.async_thread_pool.run(executable=self._send_post_request_to_data_owner, args=args)
         return [result for result in results]
 
     @optimized_collection_response(optimization=np.asarray, active=True)
-    def get_model_metrics_from_validators(self, validators, data):
-        args = [("http://{}:{}/model/metrics".format(validator.host, self.data_owner_port), data) for validator in validators]
+    def get_model_metrics_from_validators(self, validators, model_data, weights=None):
+        model = weights if weights is not None else model_data.model.weights
+        logging.info(model)
+        data = {'model': model.tolist(), 'model_type': model_data.model_type, 'model_id': model_data.model_id}
+        args = [
+            ("http://{}:{}/model/metrics".format(validator.host, self.data_owner_port), data)
+            for validator in validators
+        ]
         results = self.async_thread_pool.run(executable=self._send_post_request_to_data_owner, args=args)
         return [result for result in results]
 
@@ -52,9 +66,9 @@ class DataOwnerConnector:
         :param data:
         :return:
         """
-        data_owner, model_type, public_key, model_id = data
+        data_owner, model_type, weights, model_id = data
         url = "http://{}:{}/weights".format(data_owner.host, self.data_owner_port)
-        payload = {"model_type": model_type, "public_key": public_key}
+        payload = {"model_type": model_type, "weights": weights.tolist()}
         response = requests.post(url, json=payload)
         #result = {'data_owner': data_owner.id, 'model_id': model_id, 'update': response.json()}
         return response.json()
@@ -75,8 +89,8 @@ class DataOwnerConnector:
 
     # ---
     @normalize_optimized_collection_argument(active=True)
-    def _build_data(self, data_owner, weights):
-        return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": weights}
+    def _build_data(self, data_owner, gradient):
+        return "http://{}:{}/step".format(data_owner.host, self.data_owner_port), {"gradient": gradient}
 
     @staticmethod
     def _send_post_request_to_data_owner(data):

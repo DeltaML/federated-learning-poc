@@ -32,9 +32,7 @@ class ModelBuyer:
                                   model_id=model.id,
                                   model_buyer_id=self.id,
                                   weights=model.get_weights(),
-                                  public_key=self.encryption_service.get_public_key(),
-                                  test_data=[X_test.tolist(), y_test.tolist()],
-                                  model=model.model.weights.tolist())
+                                  public_key=self.encryption_service.get_public_key())
         self.federated_trainer_connector.send_model_order(model.request_data)
         self.models.add(model)
         return {"requirements": model.requirements,

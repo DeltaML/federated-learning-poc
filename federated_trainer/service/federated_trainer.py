@@ -12,10 +12,22 @@ from federated_trainer.service.model_buyer_connector import ModelBuyerConnector
 from federated_trainer.service.federated_validator import FederatedValidator
 from commons.model.model_service import ModelFactory
 import numpy as np
+from copy import deepcopy
 
 
 class GlobalModel:
     def __init__(self, buyer_id, buyer_host, model_id, public_key, model_type, local_trainers, validators, model):
+        """
+
+        :param buyer_id: String
+        :param buyer_host:
+        :param model_id: String
+        :param public_key: String
+        :param model_type: String
+        :param local_trainers: List[]
+        :param validators: List[]
+        :param model: LinearRegression
+        """
         self.buyer_id = buyer_id
         self.model_id = model_id
         self.buyer_host = buyer_host
@@ -28,6 +40,10 @@ class GlobalModel:
 
 class FederatedTrainer:
     def __init__(self, encryption_service, config):
+        """
+        :param encryption_service: EncriptionService
+        :param config: Dict[String, Any]
+        """
         self.data_owners = {}
         self.encryption_service = encryption_service
         self.config = config
@@ -41,8 +57,8 @@ class FederatedTrainer:
     def register_data_owner(self, data_owner_data):
         """
         Register new data_owner
-        :param data_owner_data:
-        :return:
+        :param data_owner_data: Dict[String, String], Keys: id, host, port
+        :return: Dict[String, Int]
         """
         logging.info("Register data owner with {}".format(data_owner_data))
         new_data_owner = DataOwnerInstance(data_owner_data)
@@ -93,7 +109,7 @@ class FederatedTrainer:
         import random
         copy = linked_data_owners[:]
         random.shuffle(copy)
-        local_trainers, validators = copy[:split_index], copy[split_index:]
+        local_trainers, validators = copy[:split_index+1], copy[split_index+1:] or []
         logging.info("LocalTrainers: {}".format(list(map(lambda x: x.id, local_trainers))))
         logging.info("Validators: {}".format(list(map(lambda x: x.id, validators))))
         return local_trainers, validators
@@ -116,28 +132,33 @@ class FederatedTrainer:
         logging.info('Running distributed gradient aggregation for {:d} iterations'.format(self.n_iter))
         self.encryption_service.set_public_key(data["public_key"])
         for i in range(1, self.n_iter+1):
-            model = self.training_cicle(self.global_models[model_id], i)
-        return {'model': model, 'model_id': model_id}
+            model, global_MSE, partial_MSEs = self.training_cicle(self.global_models[model_id], i)
+        return {'model': model.weights, 'model_id': model_id, 'mse': global_MSE, 'partial_MSEs': partial_MSEs}
 
     def initialize_global_model(self, data):
         model = ModelFactory.get_model(data["requirements"]["model_type"])()
-        model.set_weights(data["model"])
+        model.set_weights(np.asarray(data["weights"]))
         return model
 
     def training_cicle(self, model_data, i):
         gradients, local_trainers = self.get_gradients(model_data)
-        print("Updates", gradients)
-        print("DataOwners", local_trainers)
-        model_data.model, avg_gradient = self.update_model(model_data, gradients)
-        partial_models = [self.partial_update_model(model_data, gradients[:], local_trainers, i) for i in range(local_trainers)]
+        logging.info("Updates: {}".format(gradients))
+        logging.info("LocalTrainer: {}".format(local_trainers))
+        partial_models = [self.partial_update_model(deepcopy(model_data), gradients, local_trainers, i)
+                          for i in range(len(local_trainers))]
+        logging.info("Something")
+        model_data.model.weights, avg_gradient = self.update_model(model_data, gradients)
+        logging.info("Done updating model")
         if (i % self.n_iter_partial_res) == 0:
+            logging.info("Sending partial results")
             self.send_partial_result_to_model_buyer(model_data, partial_models)
+        logging.info("Calculating mses")
         global_MSE = self.get_model_metrics_from_validators(model_data)
-        partial_MSEs = self.get_model_metrics_from_validators()
-        print("Validators MSEs: {}".format(global_MSE))
-        print("Model {}".format(model_data.model))
+        partial_MSEs = self.get_partial_model_metrics_from_validators(partial_models, model_data)
+        logging.info("Validators MSEs: {}".format(global_MSE))
+        logging.info("Model {}".format(model_data.model))
         self.send_avg_gradient(avg_gradient, model_data)
-        return model_data.model
+        return model_data.model, global_MSE, partial_MSEs
 
     def update_model(self, model_data, gradients):
         """
@@ -147,6 +168,7 @@ class FederatedTrainer:
         :param gradients: a list of gradients to be averaged.
         :return: the model updated after a step of gradient descent.
         """
+        logging.info("Updating global model")
         avg_gradient = self.federated_averaging(gradients, model_data)
         model_data.model.gradient_step(avg_gradient, 1.5)
         return model_data.model.weights, avg_gradient
@@ -163,11 +185,13 @@ class FederatedTrainer:
         :return: a dictionary of models trained leaving different local trainers out. The filtered local trainers are
         the keys of the dictionary.
         """
-        gradients.pop(filtered_index)
+        logging.info("Updating partial model for index {}".format(filtered_index))
+        gradients = np.delete(gradients, filtered_index, 0)
         trainer = trainers[filtered_index]
         avg_gradient = self.federated_averaging(gradients, model_data)
+        logging.info("Avg gradient {}".format(avg_gradient))
         model_data.model.gradient_step(avg_gradient, 1.5)
-        return {"local_trainer": trainer, "partial_model": model_data.model.weights}
+        return trainer, model_data.model.weights
 
     def send_partial_result_to_model_buyer(self, model_data, partial_models):
         partial_result = {'model': model_data.model.weights.tolist(), 'model_id': model_data.model_id}
@@ -193,11 +217,7 @@ class FederatedTrainer:
         :return: the gradients calculated after a gradient descent step in the data owners, and the data owners that
         performed such calculation.
         """
-        model_type = model_data.model_type
-        model_id = model_data.model_id
-        public_key = model_data.public_key
-        local_trainers = model_data.local_trainers
-        gradients, owners = self.data_owner_connector.get_gradient_from_data_owners(local_trainers, model_type, public_key, model_id)
+        gradients, owners = self.data_owner_connector.get_gradient_from_data_owners(model_data)
         return gradients, owners
 
     def federated_averaging(self, updates, model_data):
@@ -216,8 +236,21 @@ class FederatedTrainer:
         return self.data_owner_connector.get_data_owners_model(model_data.local_trainers)
 
     def get_model_metrics_from_validators(self, model_data):
-        data = {"global_model": model_data.model.weights.tolist(), "model_type": model_data.model_type}
-        return self.data_owner_connector.get_model_metrics_from_validators(model_data.validators, data)
+        logging.info("Getting global mse")
+        return self.data_owner_connector.get_model_metrics_from_validators(model_data.validators, model_data)
+
+    def get_partial_model_metrics_from_validators(self, partial_models, model_data):
+        trainers_mses = {}
+        logging.info("Getting partials mses")
+        for trainer, model_weights in partial_models:
+            logging.info("Calculating mse for model without trainer: {}".format(trainer))
+            logging.info("Model weigths without the trainer {}".format(model_weights))
+            logging.info("Validators {}".format(model_data.validators))
+            mses = self.data_owner_connector.get_model_metrics_from_validators(model_data.validators, model_data, model_weights)
+            logging.info("MSE for model without trainer: {}".format(mses))
+            avg_mse = sum(mses)/len(mses)
+            trainers_mses[trainer] = avg_mse
+        return trainers_mses
 
     def send_prediction_to_buyer(self, data):
         """

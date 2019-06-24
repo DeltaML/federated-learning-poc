@@ -6,12 +6,11 @@ import numpy as np
 from commons.decorators.decorators import optimized_collection_parameter
 from commons.model.model_service import ModelFactory
 from data_owner.service.federated_trainer_connector import FederatedTrainerConnector
-from data_owner.service.prediction_service import PredictionService
 
 
 class DataOwner:
 
-    def __init__(self, config, data_loader, encryption_service):
+    def __init__(self, config, data_loader):
         """
         :param config:
         :param data_loader:
@@ -24,22 +23,28 @@ class DataOwner:
         self.register_number = None
         self.model = None
         self.trainings = {}
-        self.encryption_service = encryption_service
         self.federated_trainer_connector = FederatedTrainerConnector(self.config)
-        self.prediction_service = PredictionService(self.encryption_service)
         if config['REGISTRATION_ENABLE']:
             self.register()
 
-    def process(self, model_type, public_key):
+    def train(self, model_type, weights):
+        X, y = self.data_loader.get_sub_set()
+        self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
+        self.model.set_weights(weights)
+        gradient = self.model.fit(10, self.config['ETA'])
+        return self.client_id, gradient.tolist()
+
+    def process(self, model_type, weights):
         """
         Process to run model
         :param model_type:
-        :param public_key:
+        :param weights:
         :return:
         """
-        self.encryption_service.set_public_key(public_key)
+        logging.info("Initializing local model")
         X, y = self.data_loader.get_sub_set()
         self.model = self.model if self.model else ModelFactory.get_model(model_type)(X, y)
+        self.model.set_weights(weights)
         return self.client_id, self.model.compute_gradient().tolist()
 
     def register(self):
@@ -89,23 +94,13 @@ class DataOwner:
         logging.info("Calculated mse: {}".format(mse))
         return mse
 
-    def get_predictions(self):
-        return self.prediction_service.get()
-
-    def get_prediction(self, prediction_id):
-        return self.prediction_service.get(prediction_id)
-
-    def check_prediction_consistency(self, prediction_id, prediction_data):
-        return self.prediction_service.check_consistency(prediction_id, prediction_data)
-
 
 class DataOwnerFactory:
     @classmethod
-    def create_data_owner(cls, name, data_loader, encryption_service):
+    def create_data_owner(cls, name, data_loader):
         """
         :param name:
         :param data_loader:
-        :param encryption_service:
         :return:
         """
-        return DataOwner(name, data_loader, encryption_service)
+        return DataOwner(name, data_loader)
