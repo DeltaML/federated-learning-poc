@@ -16,7 +16,7 @@ class Database:
     def get_session(self):
         return sessionmaker(bind=self.engine)()
 
-    def rolback(self):
+    def rollback(self):
         self.get_session().rollback()
 
 
