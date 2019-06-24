@@ -3,12 +3,13 @@ import os
 import random
 from logging.config import dictConfig
 
-from flask import Flask, request, jsonify, send_from_directory, flash, redirect, url_for
+from flask import Flask, request, jsonify, send_from_directory, flash, redirect
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
 from commons.data.data_loader import DataLoader
 from commons.encryption.encryption_service import EncryptionService
+from model_buyer.service.data_base import Database
 from model_buyer.service.model_buyer import ModelBuyer
 from model_buyer.resources import api
 from model_buyer.config.logging_config import DEV_LOGGING_CONFIG, PROD_LOGGING_CONFIG
@@ -47,6 +48,7 @@ public_key, private_key = encryption_service.generate_key_pair(app.config["KEY_L
 encryption_service.set_public_key(public_key.n)
 data_loader = DataLoader(app.config['DATA_SETS_DIR'])
 model_buyer = ModelBuyer()
+data_base = Database(app.config)
 model_buyer.init(encryption_service, data_loader, app.config)
 
 

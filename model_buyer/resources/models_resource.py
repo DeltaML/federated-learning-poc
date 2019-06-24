@@ -1,10 +1,11 @@
 import logging
+
 from flask import request
 from flask_restplus import Resource, Namespace, fields
+
 from model_buyer.service.model_buyer import ModelBuyer
 
-
-api = Namespace('models',  description='Model related operations')
+api = Namespace('models', description='Model related operations')
 
 features = api.model(name='Features', model={
     'list': fields.List(fields.String, required=True, description='The model type'),
@@ -23,7 +24,6 @@ data_requirements = api.model(name='Data Requirements', model={
     'target': fields.Nested(target, required=True, description='The model type'),
 })
 
-
 requirements = api.model(name='Requirements', model={
     'model_type': fields.String(required=True, description='The model type'),
     'testing_file_name': fields.String(required=True, description='The name of the file to test'),
@@ -36,7 +36,6 @@ model = api.model(name='Model', model={
     'weights': fields.List(fields.Raw, required=True, description='The model weights')
 })
 
-
 ordered_model = api.model(name='Ordered Model', model={
     'id': fields.String(required=True, description='The model identifier'),
     'requirements': fields.Nested(requirements, required=True, description='The model requirements'),
@@ -48,7 +47,6 @@ model_request = api.model(name='Ordered Model Request', model={
     'model_type': fields.String(required=True, description='The model type'),
     'initial_model': fields.Raw(required=False, description='The model type')
 })
-
 
 model_buyer = ModelBuyer()
 
@@ -66,7 +64,7 @@ class ModelResources(Resource):
 
     @api.marshal_list_with(ordered_model)
     def get(self):
-        return model_buyer.models, 200
+        return model_buyer.all(), 200
 
 
 @api.route('/<model_id>', endpoint='model_ep')
@@ -89,6 +87,4 @@ class ModelResource(Resource):
     @api.doc('get_model')
     @api.marshal_with(ordered_model)
     def get(self, model_id):
-        return model_buyer.get_model(model_id), 200
-
-
+        return model_buyer.get(model_id), 200

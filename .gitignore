@@ -109,3 +109,5 @@ venv.bak/
 
 model_buyer/ui/node_modules/
 data_owner/ui/node_modules/
+
+*.db

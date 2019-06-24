@@ -1,36 +1,35 @@
-import os
 import logging
+import os
 import uuid
 from threading import Thread
-from model_buyer.exceptions.exceptions import OrderedModelNotFoundException
-from model_buyer.model.ordered_model import OrderedModel, OrderedModelStatus
-from model_buyer.service.federated_trainer_connector import FederatedTrainerConnector
+
 import numpy as np
 
+from commons.model.model_service import ModelFactory
+from model_buyer.exceptions.exceptions import OrderedModelNotFoundException
+from model_buyer.model.buyer_model import BuyerModel, BuyerModelStatus
+from model_buyer.service.federated_trainer_connector import FederatedTrainerConnector
 from model_buyer.utils.singleton import Singleton
 
 
 class ModelBuyer(metaclass=Singleton):
 
     def __init__(self):
-        self.id = None
+        self.id = str(uuid.uuid1())
         self.encryption_service = None
         self.data_loader = None
         self.config = None
         self.federated_trainer_connector = None
-        self.models = None
-        self.predictions = None
 
     def init(self, encryption_service, data_loader, config):
-        self.id = str(uuid.uuid1())
         self.encryption_service = encryption_service
         self.data_loader = data_loader
         self.config = config
         if config:
             self.federated_trainer_connector = FederatedTrainerConnector(config)
-        # TODO: refactor this to DB
-        self.models = set()
-        self.predictions = set()
+
+    def all(self):
+        return BuyerModel.get()
 
     def make_new_order_model(self, requirements):
         """
@@ -43,25 +42,27 @@ class ModelBuyer(metaclass=Singleton):
         file_name = requirements["testing_file_name"]
         self.data_loader.load_data(file_name)
         x_test, y_test = self.data_loader.get_sub_set()
-        model = OrderedModel(data_requirements, model_type, x_test)
-        model.request_data = dict(requirements=requirements,
-                                  model_id=model.id,
-                                  model_buyer_id=self.id,
-                                  weights=model.get_weights(),
-                                  test_data=[x_test.tolist(), y_test.tolist()])
-        self.federated_trainer_connector.send_model_order(model.request_data)
-        self.models.add(model)
-        return {"requirements": model.requirements,
-                "model": {"id": model.id,
-                          "status": model.status.name,
-                          "type": model.model_type,
-                          "weights": model.get_weights()
+        ordered_model = BuyerModel(model_type=model_type, data=x_test)
+        ordered_model.requirements = data_requirements
+        ordered_model.request_data = dict(requirements=requirements,
+                                          model_id=ordered_model.id,
+                                          model_buyer_id=self.id,
+                                          weights=ordered_model.model.weights.tolist(),
+                                          test_data=[x_test.tolist(), y_test.tolist()])
+        ordered_model.save()
+
+        self.federated_trainer_connector.send_model_order(ordered_model.request_data)
+        return {"requirements": ordered_model.requirements,
+                "model": {"id": ordered_model.id,
+                          "status": ordered_model.status,
+                          "type": ordered_model.model_type,
+                          "weights": ordered_model.model['weights']
                           }
                 }
 
     def finish_model(self, model_id, data):
-        model = self._update_model(model_id, data, OrderedModelStatus.FINISHED)
-        logging.info("Model status: {} weights {}".format(model.status.name, model.get_weights()))
+        buyer_model = self._update_model(model_id, data, BuyerModelStatus.FINISHED.name)
+        logging.info("Model status: {} weights {}".format(buyer_model.status, buyer_model.model["weights"]))
 
     def update_model(self, model_id, data):
         """
@@ -70,20 +71,23 @@ class ModelBuyer(metaclass=Singleton):
         :param data:
         :return:
         """
-        return self._update_model(model_id, data, OrderedModelStatus.IN_PROGRESS)
+        return self._update_model(model_id, data, BuyerModelStatus.IN_PROGRESS.name)
 
     def _update_model(self, model_id, data, status):
         weights = self.encryption_service.decrypt_and_deserizalize_collection(
             self.encryption_service.get_private_key(),
             data['model']
         ) if self.config["ACTIVE_ENCRYPTION"] else data['model']
-        model = self.get_model(model_id)
+        ordered_model = self.get(model_id)
+        model = ModelFactory.load_model(ordered_model.model_type, ordered_model.model)
         model.set_weights(np.asarray(weights))
-        model.status = status
-        return model
+        ordered_model.model = model
+        ordered_model.status = status
+        ordered_model.save()
+        return ordered_model
 
-    def get_model(self, model_id):
-        return next(filter(lambda x: x.id == model_id, self.models), None)
+    def get(self, model_id):
+        return BuyerModel.get(model_id)
 
     def make_prediction(self, data):
         """
