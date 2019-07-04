@@ -16,6 +16,18 @@ def optimized_collection_response(optimization, active=False):
     return wrap
 
 
+def optimized_dict_collection_response(optimization, active=False):
+    def wrap(f):
+        def wrapped_optimized_collection_response(*args):
+            result = f(*args)
+            updates = list(map(lambda x: x['update'], result))
+            owners = list(map(lambda x: x['data_owner'], result))  # TODO: Add model_id
+            updates = optimization(updates) if active else updates
+            return updates, owners
+        return wrapped_optimized_collection_response
+    return wrap
+
+
 def normalize_optimized_collection_argument(active=False):
     def wrap(f):
         def wrapped_normalize_optimized_collection(*args):
@@ -30,6 +42,7 @@ def normalize_optimized_response(active=False):
     def wrap(f):
         def wrapped_normalize_optimized_response(*args):
             result = f(*args)
-            return result.tolist() if active else result
+            result['model'] = result['model'].tolist() if active else result['model']
+            return result
         return wrapped_normalize_optimized_response
     return wrap

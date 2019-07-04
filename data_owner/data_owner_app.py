@@ -4,9 +4,6 @@ from logging.config import dictConfig
 from flask import Flask, request, jsonify
 from data_owner.service.data_owner import DataOwnerFactory
 from commons.data.data_loader import DataLoader
-from data_owner.service.decorators import serialize_encrypted_data, deserialize_encrypted_data, \
-    serialize_encrypted_model_data
-from commons.encryption.encryption_service import EncryptionService
 
 from flask import send_from_directory
 dictConfig({
@@ -39,17 +36,10 @@ def create_app():
     return flask_app
 
 
-def build_data_loader(config):
-    data_loader = DataLoader(config["DATASETS_DIR"])
-    return data_loader
-
-
 # Global variables
 app = create_app()
-
-data_loader = build_data_loader(app.config)
-encryption_service = EncryptionService()
-data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader, encryption_service)
+data_loader = DataLoader(app.config["DATASETS_DIR"])
+data_owner = DataOwnerFactory.create_data_owner(app.config, data_loader)
 active_encryption = app.config["ACTIVE_ENCRYPTION"]
 
 
@@ -88,36 +78,38 @@ def handle_error(error):
     return jsonify(response), status_code
 
 
+@app.route('/model/train/', methods=['POST'])
+def train():
+    data = request.get_json()
+    id, gradient = data_owner.train(data['model_type'], data['weights'])
+    return {'data_owner': id, 'update': gradient}
+
+
 @app.route('/weights', methods=['POST'])
-@serialize_encrypted_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
-def process_weights():
+def compute_gradient():
     """
     process weights from server
     :return:
     """
     logging.info("Process weights")
     data = request.get_json()
-    # model type
-    model_type = data['model_type']
-    #requirements = data['requirements']
-    # encrypted_model
-    return data_owner.process(model_type, data["public_key"])
+    id, gradient = data_owner.process(data['model_type'], data['weights'])
+    return jsonify({'data_owner': id, 'update': gradient})
 
 
 @app.route('/step', methods=['PUT'])
-@deserialize_encrypted_data(encryption_service=encryption_service, request=request, active=active_encryption)
-def gradient_step(data):
+def gradient_step():
     """
     Execute step with gradient
     :return:
     """
+    data = request.get_json()
     logging.info("Gradient step")
-    data_owner.step(data)
+    data_owner.step(data["gradient"])
     return jsonify(200)
 
 
 @app.route('/model', methods=['GET'])
-@serialize_encrypted_model_data(encryption_service=encryption_service, schema=jsonify, active=active_encryption)
 def get_model():
     logging.info("Get Model")
     return data_owner.get_model()
@@ -128,11 +120,26 @@ def ping():
     return jsonify(200)
 
 
-@app.route('/data/requeriments', methods=['POST'])
+@app.route('/data/requirements', methods=['POST'])
 def link_reqs_to_file():
     data = request.get_json()
-    print(data)
     training_req_id = data['model_id']
     reqs = data['requirements']['data_requirements']
-    result = data_owner.link_dataset_to_trainig_request(training_req_id, reqs)
+    result = data_owner.link_dataset_to_model_id(training_req_id, reqs)
     return jsonify({training_req_id: (data_owner.client_id, result)})
+
+
+@app.route('/model/metrics', methods=['POST'])
+def get_model_quality():
+    data = request.get_json()
+    model_id = data["model_id"]
+    model_type = data["model_type"]
+    weights = data["model"]
+    logging.info("Getting metrics, data owner: {}".format(data_owner.client_id))
+    return jsonify(data_owner.model_quality_metrics(model_type, weights))
+
+
+
+
+
+

@@ -12,11 +12,11 @@ class OrderedModelStatus(Enum):
 
 class OrderedModel:
 
-    def __init__(self, requirements, model_type):
+    def __init__(self, requirements, model_type, data):
         self.id = str(uuid.uuid1())
         self.model_type = model_type
         self.requirements = requirements
-        self.model = ModelFactory.get_model(model_type)()
+        self.model = ModelFactory.get_model(model_type)(data)
         self.request_data = None
         self.status = OrderedModelStatus.INITIATED
 
@@ -29,6 +29,8 @@ class OrderedModel:
         return self.model.predict(x, y)
 
     def get_weights(self):
-        return self.model.weights
+        return self.model.weights.tolist()
+
+
 
 

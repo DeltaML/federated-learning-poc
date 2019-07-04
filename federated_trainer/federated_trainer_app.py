@@ -75,11 +75,29 @@ def get_data_owners():
 @app.route('/model', methods=['POST'])
 def train_model_async():
     data = request.get_json()
-    logging.info("Initializing async model trainig acording to request {}".format(data))
+    logging.info("Initializing async model training according to request {}".format(data))
     logging.info("host {} port {}".format(request.environ['REMOTE_ADDR'], request.environ['REMOTE_PORT']))
     # Validate model type
     federated_trainer.process(request.environ['REMOTE_ADDR'], data)
     return jsonify(200)
+
+
+@app.route('/prediction', methods=['POST'])
+def post_prediction():
+    data = request.get_json()
+    logging.info("Data {}".format(data))
+    federated_trainer.send_prediction_to_buyer(data)
+    return jsonify(200), 200
+
+
+@app.route('/prediction/<prediction_id>', methods=['PATCH'])
+def patch_prediction(prediction_id):
+    data = request.get_json()
+    logging.info("Data {}".format(data))
+    federated_trainer.send_prediction_to_data_owner(data)
+    return jsonify("pong")
+
+
 
 
 @app.route('/ping', methods=['POST'])
