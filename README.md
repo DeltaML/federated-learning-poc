@@ -5,6 +5,23 @@
 
 Repository that contains a Proof of Concept for the implementation of a Federated Learning framework.
 
+## IMPORTANT:
+**The code found in this repository was divided and moved into several repositories** one for each component of a platform that uses Federated Learning to train models preserving the privacy, Homomorphic Encryption to secure the model and Smart Contracts to pay each participant in the platform for the job done without having to trust in a third party.
+An explanation of the whole project can be found in:
+- [https://github.com/DeltaML/report](https://github.com/DeltaML/report) (currently only in spanish).
+
+**The current repositories are:**
+- Model Buyer:
+ - API: [https://github.com/DeltaML/model-buyer](https://github.com/DeltaML/model-buyer)
+ - UI: [https://github.com/DeltaML/model-buyer-ui](https://github.com/DeltaML/model-buyer-ui)
+- Data Owner:
+ - API: [https://github.com/DeltaML/data-owner](https://github.com/DeltaML/data-owner)
+ - UI: [https://github.com/DeltaML/data-owner-ui](https://github.com/DeltaML/data-owner-ui)
+- Federated Aggregator:
+ - API:[https://github.com/DeltaML/federated-aggregator](https://github.com/DeltaML/federated-aggregator)
+- Smart Contract:
+ - [https://github.com/DeltaML/contract](https://github.com/DeltaML/contract)
+
 
 ## Getting Started
 
